@@ -3,8 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>USTOZPRO - Real-time Platform</title>
+    <title>USTOZPRO - Cloud Platform</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.ably.com/lib/ably.min-1.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
@@ -57,9 +58,8 @@
             width: 100%; padding: 15px;
             background: linear-gradient(135deg, #6366f1, #8b5cf6, #06b6d4);
             border: none; border-radius: 12px; color: #fff; font-weight: 700;
-            cursor: pointer; transition: all 0.3s;
+            cursor: pointer;
         }
-        .btn-login:hover { transform: translateY(-2px); }
         
         .topbar {
             display: flex; align-items: center; gap: 12px; padding: 12px 16px;
@@ -129,16 +129,6 @@
         .chat-row input { flex: 1; padding: 12px; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; color: #fff; outline: none; }
         .btn-send { padding: 12px 20px; background: linear-gradient(135deg, #6366f1, #8b5cf6); border: none; border-radius: 12px; color: #fff; cursor: pointer; }
         
-        .pay-card { display: flex; justify-content: space-between; align-items: center; padding: 14px; background: rgba(245,158,11,0.08); border: 1px solid rgba(245,158,11,0.2); border-radius: 12px; margin-bottom: 8px; }
-        .pay-status-btn { padding: 8px 16px; background: linear-gradient(135deg, #f59e0b, #fbbf24); border: none; border-radius: 8px; color: #1a1a00; font-weight: 700; cursor: pointer; }
-        
-        .add-form { display: none; margin-top: 16px; padding: 16px; background: rgba(0,0,0,0.3); border-radius: 12px; }
-        .add-form.open { display: block; }
-        .fg { display: grid; gap: 12px; }
-        .fg2 { grid-template-columns: repeat(2, 1fr); }
-        @media (max-width: 480px) { .fg2 { grid-template-columns: 1fr; } }
-        .finput { width: 100%; padding: 10px 12px; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: #fff; outline: none; }
-        
         .toast-wrap { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 9999; }
         .toast { padding: 10px 20px; border-radius: 12px; font-size: 13px; color: #fff; backdrop-filter: blur(20px); animation: fadeIn 0.3s ease; }
         .toast.success { background: rgba(16,185,129,0.9); }
@@ -154,13 +144,13 @@
         .pbar { height: 5px; background: rgba(255,255,255,0.08); border-radius: 99px; overflow: hidden; margin: 6px 0 3px; }
         .pfill { height: 100%; border-radius: 99px; transition: width 0.6s ease; }
         .pf-green { background: linear-gradient(90deg, #10b981, #34d399); }
-        .pf-amber { background: linear-gradient(90deg, #f59e0b, #fbbf24); }
         
-        .table-wrap { overflow-x: auto; }
-        table { width: 100%; border-collapse: collapse; font-size: 13px; }
-        th { text-align: left; padding: 12px; font-size: 10px; color: #64748b; border-bottom: 1px solid rgba(255,255,255,0.08); }
-        td { padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.04); color: #94a3b8; }
-        .td-bold { color: #fff; font-weight: 600; }
+        .add-form { display: none; margin-top: 16px; padding: 16px; background: rgba(0,0,0,0.3); border-radius: 12px; }
+        .add-form.open { display: block; }
+        .fg { display: grid; gap: 12px; }
+        .fg2 { grid-template-columns: repeat(2, 1fr); }
+        @media (max-width: 480px) { .fg2 { grid-template-columns: 1fr; } }
+        .finput { width: 100%; padding: 10px 12px; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: #fff; outline: none; }
     </style>
 </head>
 <body>
@@ -171,7 +161,7 @@
     <div class="login-wrap">
         <div class="brand-orb">UP</div>
         <div class="brand-name">USTOZPRO</div>
-        <div class="brand-sub" style="text-align:center; margin-top:4px;">O'quv markazi boshqaruvi</div>
+        <div class="brand-sub" style="text-align:center; margin-top:4px;">Cloud Education Platform</div>
         <div class="glass" style="margin-top: 24px; padding: 28px;">
             <div class="role-tabs">
                 <button class="role-tab" onclick="setRole('dasturchi')">👨‍💻 Dasturchi</button>
@@ -204,63 +194,22 @@
 <div class="toast-wrap" id="toastWrap"></div>
 
 <script>
+// ============ SUPABASE KONFIGURATSIYA ============
+// 👇👇👇 Supabase dashboarddan olingan ma'lumotlarni qo'ying!
+const SUPABASE_URL = 'https://YOUR_PROJECT.supabase.co';  // O'zgartiring!
+const SUPABASE_ANON_KEY = 'YOUR_ANON_KEY';  // O'zgartiring!
+
 // ============ ABLY API KEY ============
 const ABLY_API_KEY = 'GSQZcQ.qw01Ow:t1CiUe_16VfC_B4L56oe5BT3tGuwvT6WkbxTDZ5dsSk';
 
-// ============ STORAGE KEY ============
-const STORAGE_KEY = 'ustozpro_full_data';
-
-// ============ DEFAULT DATA ============
-function getDefaultData() {
-    return {
-        users: [
-            { id: 1, login: 'dasturchi', pass: 'dev123', role: 'dasturchi', name: 'Dasturchi Admin' },
-            { id: 2, login: 'menejer', pass: 'men123', role: 'menejer', name: 'Aziz Menejer' },
-            { id: 3, login: 'ali', pass: 'tch123', role: 'oqutuvchi', name: 'Ali Ustoz', subject: 'Matematika' },
-            { id: 4, login: 'bobur', pass: 'stu123', role: 'oquvchi', name: 'Bobur Karimov', teacherId: 3 },
-            { id: 5, login: 'malika', pass: 'stu123', role: 'oquvchi', name: 'Malika Yusupova', teacherId: 3 },
-            { id: 6, login: 'jasur', pass: 'stu123', role: 'oquvchi', name: 'Jasur Toshmatov', teacherId: 3 },
-        ],
-        attendance: {
-            4: [1,1,1,1,0,1,1,1,0,1,1,1,1,0,1,0],
-            5: [1,1,0,1,1,1,0,1,1,0,1,1,1,1,0,1],
-            6: [1,1,1,0,1,1,1,0,1,1,1,0,1,1,0,0]
-        },
-        payments: [],
-        messages: [],  // Chat xabarlari SAQLANADI!
-        nextId: 7
-    };
-}
-
-// ============ LOAD/SAVE DATA ============
-function loadData() {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    if (saved) {
-        try {
-            const data = JSON.parse(saved);
-            // messages array borligini tekshir
-            if (!data.messages) data.messages = [];
-            if (!data.payments) data.payments = [];
-            if (!data.attendance) data.attendance = {};
-            return data;
-        } catch(e) { console.log(e); }
-    }
-    return getDefaultData();
-}
-
-function saveData() {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(DB));
-}
-
-let DB = loadData();
+// Initialize Supabase
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // ============ GLOBAL ============
 let CU = null;
 let selectedRole = 'menejer';
 let ably = null;
 let chatChannel = null;
-
-const DATES = ['Apr 1','Apr 2','Apr 3','Apr 4','Apr 5','Apr 7','Apr 8','Apr 9','Apr 10','Apr 11','Apr 12','Apr 13','Apr 14','Apr 15','Apr 16','Apr 17'];
 
 // ============ HELPERS ============
 function toast(msg, type = 'info') {
@@ -273,14 +222,6 @@ function toast(msg, type = 'info') {
     setTimeout(() => t.remove(), 2900);
 }
 
-function getAtt(stuId) { return (DB.attendance[stuId] || []).filter(x => x === 1).length; }
-function getPct(stuId) { return Math.round(getAtt(stuId) / DATES.length * 100); }
-function getUser(id) { return DB.users.find(u => u.id === id); }
-function getTch() { return DB.users.filter(u => u.role === 'oqutuvchi'); }
-function getStu() { return DB.users.filter(u => u.role === 'oquvchi'); }
-function getMyStudents(tchId) { return DB.users.filter(u => u.role === 'oquvchi' && u.teacherId === tchId); }
-function pbar(pct) { const cls = pct >= 80 ? 'pf-green' : 'pf-amber'; return `<div class="pbar"><div class="pfill ${cls}" style="width:${pct}%"></div></div><span style="font-size:11px">${pct}%</span>`; }
-
 // ============ ABLY REAL-TIME ============
 async function initAbly() {
     try {
@@ -288,21 +229,17 @@ async function initAbly() {
         await new Promise((resolve) => { ably.connection.once('connected', resolve); });
         console.log('✅ Ably connected');
         document.getElementById('onlineBadge')?.classList.add('online-indicator');
-        toast('🔴 Real-time ulandi!', 'success');
         
         chatChannel = ably.channels.get('ustozpro:chat');
         await chatChannel.subscribe('message', (msg) => {
-            // Kelgan xabarni localga saqlash
-            DB.messages.push(msg.data);
-            saveData();
             displayMessage(msg.data);
         });
         
-    } catch(err) { console.error('Ably error:', err); toast('Real-time xatolik', 'error'); }
+    } catch(err) { console.error('Ably error:', err); }
 }
 
 async function sendMessage(text) {
-    if (!chatChannel) { toast('Ulanish yo\'q', 'warning'); return false; }
+    if (!chatChannel) return false;
     const msg = {
         id: Date.now(),
         userId: CU.id,
@@ -312,10 +249,14 @@ async function sendMessage(text) {
         time: new Date().toISOString()
     };
     await chatChannel.publish('message', msg);
-    // O'z xabarini localga saqlash
-    DB.messages.push(msg);
-    saveData();
     displayMessage(msg);
+    // Supabase'ga saqlash
+    await supabase.from('messages').insert([{
+        user_id: CU.id,
+        user_name: CU.name,
+        user_role: CU.role,
+        message: text
+    }]);
     return true;
 }
 
@@ -339,20 +280,30 @@ function setRole(role) {
     });
 }
 
-function doLogin() {
+async function doLogin() {
     const login = document.getElementById('loginIn').value.trim();
     const pass = document.getElementById('passIn').value.trim();
     if (!login || !pass) { toast('Login va parol kiriting', 'warning'); return; }
     
-    const user = DB.users.find(u => u.login === login && u.pass === pass && u.role === selectedRole);
-    if (!user) { toast('Login yoki parol xato', 'error'); return; }
+    // Supabase'dan user tekshirish
+    const { data, error } = await supabase
+        .from('users')
+        .select('*')
+        .eq('login', login)
+        .eq('password', pass)
+        .eq('role', selectedRole);
     
-    CU = user;
+    if (error || !data || data.length === 0) {
+        toast('Login yoki parol xato!', 'error');
+        return;
+    }
+    
+    CU = data[0];
     document.getElementById('loginScreen').classList.remove('active');
     document.getElementById('appScreen').classList.add('active');
     document.getElementById('tbName').textContent = CU.name;
     
-    initAbly();
+    await initAbly();
     buildNav();
     toast(`Xush kelibsiz, ${CU.name}!`, 'success');
 }
@@ -425,305 +376,123 @@ function loadView(viewId) {
     else if (viewId === 'chat') renderChat(container);
 }
 
-// ============ RENDER FUNCTIONS ============
+// ============ RENDER FUNCTIONS (soddalashtirilgan) ============
 function renderDashboard(container) {
-    const teachers = getTch().length;
-    const students = getStu().length;
-    const pending = DB.payments.filter(p => p.status === 'pending').length;
-    let totalAtt = 0;
-    getStu().forEach(s => totalAtt += getAtt(s.id));
-    const avgAtt = students ? Math.round(totalAtt / students / DATES.length * 100) : 0;
-    
     container.innerHTML = `
-        <div class="sg sg-4">
-            <div class="scard"><div class="sv sv-cyan">${teachers}</div><div class="sl">O'qituvchilar</div></div>
-            <div class="scard"><div class="sv sv-indigo">${students}</div><div class="sl">O'quvchilar</div></div>
-            <div class="scard"><div class="sv sv-amber">${pending}</div><div class="sl">To'lov kutilmoqda</div></div>
-            <div class="scard"><div class="sv sv-green">${avgAtt}%</div><div class="sl">O'rtacha davomat</div></div>
-        </div>
         <div class="card">
-            <div class="card-title">📈 Tizim holati</div>
-            <div class="card-sub">Ma'lumotlar localStorageda saqlanadi</div>
-            <div style="margin-top:12px; padding:12px; background:rgba(0,0,0,0.2); border-radius:12px;">
-                <div>✅ Chat xabarlari: ${DB.messages.length} ta</div>
-                <div>👥 Foydalanuvchilar: ${DB.users.length} ta</div>
-                <div>🔴 Ably: ${ably?.connection?.state === 'connected' ? 'Ulangan' : 'Ulanmagan'}</div>
+            <div class="card-title">📊 Dashboard</div>
+            <div class="card-sub">Cloud-based platform | Supabase + Ably</div>
+            <div style="margin-top:16px; padding:12px; background:rgba(0,0,0,0.2); border-radius:12px;">
+                <div>✅ Ma'lumotlar bazasi: Supabase (PostgreSQL)</div>
+                <div>🔴 Real-time: Ably</div>
+                <div>👤 Hozirgi foydalanuvchi: ${CU?.name} (${CU?.role})</div>
+                <div>🌐 Barcha qurilmalarda bir xil ma'lumotlar!</div>
             </div>
         </div>
     `;
 }
 
 function renderUsers(container) {
-    const nonAdmin = DB.users.filter(u => u.role !== 'dasturchi');
+    container.innerHTML = `<div class="card"><div class="card-title">👥 Foydalanuvchilar</div><div class="empty">Supabase orqali yuklanmoqda...</div></div>`;
+    loadUsersFromDB(container);
+}
+
+async function loadUsersFromDB(container) {
+    const { data, error } = await supabase.from('users').select('*').neq('role', 'dasturchi');
+    if (error) { container.innerHTML = `<div class="card"><div class="empty">Xatolik: ${error.message}</div></div>`; return; }
+    
     container.innerHTML = `
         <div class="card">
             <div class="card-title">👥 Foydalanuvchilar</div>
-            <button class="btn-login" style="margin:16px 0; padding:10px;" onclick="toggleAddForm('addUserForm')">+ Yangi qo'shish</button>
-            <div id="addUserForm" class="add-form">
+            <button class="btn-login" style="margin:16px 0; padding:10px;" onclick="showAddUserForm()">+ Yangi qo'shish</button>
+            <div id="addUserFormSupabase" class="add-form">
                 <div class="fg fg2">
-                    <input class="finput" id="newName" placeholder="Ism familiya">
-                    <input class="finput" id="newLogin" placeholder="Login">
+                    <input class="finput" id="newNameSup" placeholder="Ism">
+                    <input class="finput" id="newLoginSup" placeholder="Login">
                 </div>
                 <div class="fg fg2">
-                    <input class="finput" type="password" id="newPass" placeholder="Parol">
-                    <select class="finput" id="newRole">
+                    <input class="finput" type="password" id="newPassSup" placeholder="Parol">
+                    <select class="finput" id="newRoleSup">
                         <option value="menejer">Menejer</option>
                         <option value="oqutuvchi">O'qituvchi</option>
                         <option value="oquvchi">O'quvchi</option>
                     </select>
                 </div>
-                <button class="btn-login" style="padding:8px;" onclick="addNewUser()">✅ Saqlash</button>
+                <button class="btn-login" style="padding:8px;" onclick="addUserToSupabase()">✅ Saqlash</button>
             </div>
-            ${nonAdmin.map(u => `
+            ${data.map(u => `
                 <div class="srow">
                     <div class="avatar">${u.name[0]}</div>
                     <div class="sinfo"><div class="sname">${u.name}</div><div class="smeta">${u.role} | ${u.login}</div></div>
-                    <button class="mark-btn" onclick="deleteUser(${u.id})">❌ O'chirish</button>
                 </div>
             `).join('')}
         </div>
     `;
 }
 
-function addNewUser() {
-    const name = document.getElementById('newName').value.trim();
-    const login = document.getElementById('newLogin').value.trim();
-    const pass = document.getElementById('newPass').value.trim();
-    const role = document.getElementById('newRole').value;
+async function addUserToSupabase() {
+    const name = document.getElementById('newNameSup').value.trim();
+    const login = document.getElementById('newLoginSup').value.trim();
+    const pass = document.getElementById('newPassSup').value.trim();
+    const role = document.getElementById('newRoleSup').value;
     
-    if (!name || !login || !pass) { toast('Hamma maydonlarni to\'ldiring!', 'warning'); return; }
-    if (DB.users.find(u => u.login === login)) { toast('Bunday login mavjud!', 'error'); return; }
+    if (!name || !login || !pass) { toast('To\'ldiring!', 'warning'); return; }
     
-    const newUser = { id: DB.nextId++, login, pass, role, name };
-    if (role === 'oqutuvchi') newUser.subject = 'Fan';
-    DB.users.push(newUser);
-    if (role === 'oquvchi') DB.attendance[newUser.id] = [];
+    const { error } = await supabase.from('users').insert([{ name, login, password: pass, role }]);
+    if (error) { toast('Xatolik: ' + error.message, 'error'); return; }
     
-    saveData();
     toast(`${name} qo'shildi!`, 'success');
-    document.getElementById('addUserForm').classList.remove('open');
-    document.getElementById('newName').value = '';
-    document.getElementById('newLogin').value = '';
-    document.getElementById('newPass').value = '';
+    document.getElementById('addUserFormSupabase').classList.remove('open');
     loadView('users');
 }
 
-function deleteUser(id) {
-    if (confirm('Rostdan ham o\'chirmoqchimisiz?')) {
-        DB.users = DB.users.filter(u => u.id !== id);
-        delete DB.attendance[id];
-        DB.payments = DB.payments.filter(p => p.stuId !== id);
-        saveData();
-        toast('Foydalanuvchi o\'chirildi', 'error');
-        loadView('users');
-        if (CU?.role === 'menejer') { loadView('teachers'); loadView('students'); }
-    }
-}
-
 function renderTeachers(container) {
-    const teachers = getTch();
-    container.innerHTML = `
-        <div class="card">
-            <div class="card-title">👨‍🏫 O'qituvchilar</div>
-            <button class="btn-login" style="margin:16px 0; padding:10px;" onclick="toggleAddForm('addTeacherForm')">+ Qo'shish</button>
-            <div id="addTeacherForm" class="add-form">
-                <div class="fg fg2">
-                    <input class="finput" id="tchName" placeholder="Ism familiya">
-                    <input class="finput" id="tchLogin" placeholder="Login">
-                </div>
-                <div class="fg fg2">
-                    <input class="finput" type="password" id="tchPass" placeholder="Parol">
-                    <input class="finput" id="tchSubject" placeholder="Fan">
-                </div>
-                <button class="btn-login" style="padding:8px;" onclick="addNewTeacher()">✅ Saqlash</button>
-            </div>
-            ${teachers.map(t => `
-                <div class="srow">
-                    <div class="avatar">${t.name[0]}</div>
-                    <div class="sinfo"><div class="sname">${t.name}</div><div class="smeta">${t.subject || 'Fan yo\'q'} | ${getMyStudents(t.id).length} o'quvchi</div></div>
-                </div>
-            `).join('')}
-        </div>
-    `;
+    container.innerHTML = `<div class="card"><div class="card-title">👨‍🏫 O'qituvchilar</div><div class="empty">Yuklanmoqda...</div></div>`;
+    loadTeachersFromDB(container);
 }
 
-function addNewTeacher() {
-    const name = document.getElementById('tchName').value.trim();
-    const login = document.getElementById('tchLogin').value.trim();
-    const pass = document.getElementById('tchPass').value.trim();
-    const subject = document.getElementById('tchSubject').value.trim();
-    
-    if (!name || !login || !pass) { toast('To\'ldiring!', 'warning'); return; }
-    if (DB.users.find(u => u.login === login)) { toast('Login mavjud!', 'error'); return; }
-    
-    DB.users.push({ id: DB.nextId++, login, pass, role: 'oqutuvchi', name, subject: subject || 'Fan' });
-    saveData();
-    toast(`${name} qo'shildi`, 'success');
-    document.getElementById('addTeacherForm').classList.remove('open');
-    loadView('teachers');
+async function loadTeachersFromDB(container) {
+    const { data, error } = await supabase.from('users').select('*').eq('role', 'oqutuvchi');
+    if (error) return;
+    container.innerHTML = `<div class="card"><div class="card-title">👨‍🏫 O'qituvchilar</div>${data.map(t => `<div class="srow"><div class="avatar">${t.name[0]}</div><div class="sinfo"><div class="sname">${t.name}</div><div class="smeta">${t.subject || 'Fan yo\'q'}</div></div></div>`).join('')}</div>`;
 }
 
 function renderStudents(container) {
-    const students = getStu();
-    container.innerHTML = `
-        <div class="card">
-            <div class="card-title">🎓 O'quvchilar</div>
-            <button class="btn-login" style="margin:16px 0; padding:10px;" onclick="toggleAddForm('addStudentForm')">+ Qo'shish</button>
-            <div id="addStudentForm" class="add-form">
-                <div class="fg fg2">
-                    <input class="finput" id="stuName" placeholder="Ism familiya">
-                    <input class="finput" id="stuLogin" placeholder="Login">
-                </div>
-                <div class="fg fg2">
-                    <input class="finput" type="password" id="stuPass" placeholder="Parol">
-                    <select class="finput" id="stuTeacherId">
-                        <option value="">O'qituvchi tanlang</option>
-                        ${getTch().map(t => `<option value="${t.id}">${t.name}</option>`).join('')}
-                    </select>
-                </div>
-                <button class="btn-login" style="padding:8px;" onclick="addNewStudent()">✅ Saqlash</button>
-            </div>
-            ${students.map(s => {
-                const teacher = getUser(s.teacherId);
-                return `<div class="srow"><div class="avatar">${s.name[0]}</div><div class="sinfo"><div class="sname">${s.name}</div><div class="smeta">${teacher?.name || 'O\'qituvchi yo\'q'} | ${getAtt(s.id)} ta dars</div></div></div>`;
-            }).join('')}
-        </div>
-    `;
+    container.innerHTML = `<div class="card"><div class="card-title">🎓 O'quvchilar</div><div class="empty">Yuklanmoqda...</div></div>`;
+    loadStudentsFromDB(container);
 }
 
-function addNewStudent() {
-    const name = document.getElementById('stuName').value.trim();
-    const login = document.getElementById('stuLogin').value.trim();
-    const pass = document.getElementById('stuPass').value.trim();
-    const teacherId = parseInt(document.getElementById('stuTeacherId').value);
-    
-    if (!name || !login || !pass || !teacherId) { toast('To\'ldiring!', 'warning'); return; }
-    if (DB.users.find(u => u.login === login)) { toast('Login mavjud!', 'error'); return; }
-    
-    const id = DB.nextId++;
-    DB.users.push({ id, login, pass, role: 'oquvchi', name, teacherId });
-    DB.attendance[id] = [];
-    saveData();
-    toast(`${name} qo'shildi`, 'success');
-    document.getElementById('addStudentForm').classList.remove('open');
-    loadView('students');
+async function loadStudentsFromDB(container) {
+    const { data, error } = await supabase.from('users').select('*').eq('role', 'oquvchi');
+    if (error) return;
+    container.innerHTML = `<div class="card"><div class="card-title">🎓 O'quvchilar</div>${data.map(s => `<div class="srow"><div class="avatar">${s.name[0]}</div><div class="sinfo"><div class="sname">${s.name}</div><div class="smeta">O'quvchi</div></div></div>`).join('')}</div>`;
 }
 
 function renderPayments(container) {
-    const pending = DB.payments.filter(p => p.status === 'pending');
-    container.innerHTML = `
-        <div class="card">
-            <div class="card-title">💰 To'lovlar</div>
-            ${pending.length ? pending.map(p => {
-                const student = getUser(p.stuId);
-                return `<div class="pay-card"><div><strong>${student?.name}</strong><br><small>${p.count} ta dars</small></div><button class="pay-status-btn" onclick="confirmPay(${p.stuId})">✅ Tasdiqlash</button></div>`;
-            }).join('') : '<div class="empty">✅ Barcha to\'lovlar to\'langan</div>'}
-        </div>
-    `;
-}
-
-function confirmPay(stuId) {
-    const pay = DB.payments.find(p => p.stuId === stuId && p.status === 'pending');
-    if (pay) {
-        pay.status = 'paid';
-        saveData();
-        toast(`${pay.name} to'lovi tasdiqlandi`, 'success');
-        loadView('payments');
-    }
+    container.innerHTML = `<div class="card"><div class="card-title">💰 To'lovlar</div><div class="empty">To'lovlar keladi</div></div>`;
 }
 
 function renderAttendance(container) {
-    const students = getMyStudents(CU.id);
-    const today = new Date().toDateString();
-    
-    container.innerHTML = `
-        <div class="card">
-            <div class="card-title">📋 Davomat belgilash</div>
-            <div class="card-sub">${new Date().toLocaleDateString('uz-UZ')}</div>
-            ${students.map(s => {
-                const isMarked = (DB.attendance[s.id] || []).includes(today);
-                return `<div class="srow"><div class="avatar">${s.name[0]}</div><div class="sinfo"><div class="sname">${s.name}</div><div class="smeta">${getAtt(s.id)} ta dars</div></div><button class="mark-btn ${isMarked ? 'mb-marked' : ''}" onclick="toggleAtt(${s.id})">${isMarked ? '✓ Keldi' : 'Belgilash'}</button></div>`;
-            }).join('')}
-        </div>
-    `;
-}
-
-function toggleAtt(stuId) {
-    if (!DB.attendance[stuId]) DB.attendance[stuId] = [];
-    const today = new Date().toDateString();
-    const idx = DB.attendance[stuId].indexOf(today);
-    if (idx >= 0) DB.attendance[stuId].splice(idx, 1);
-    else DB.attendance[stuId].push(today);
-    saveData();
-    
-    const cnt = getAtt(stuId);
-    if (cnt >= 14) {
-        const existing = DB.payments.find(p => p.stuId === stuId && p.status === 'pending');
-        if (!existing) {
-            const student = getUser(stuId);
-            DB.payments.push({ stuId, name: student.name, count: cnt, status: 'pending', date: new Date().toLocaleDateString() });
-            saveData();
-            toast(`⚠️ ${student.name} to'lov kerak!`, 'warning');
-        }
-    }
-    loadView('attendance');
+    container.innerHTML = `<div class="card"><div class="card-title">📋 Davomat</div><div class="empty">Davomat belgilash</div></div>`;
 }
 
 function renderJournal(container) {
-    const students = getMyStudents(CU.id);
-    container.innerHTML = `
-        <div class="card">
-            <div class="card-title">📖 Jurnal</div>
-            <div class="table-wrap">
-                <table><thead><tr><th>O'quvchi</th><th>Keldi</th><th>Progress</th><th>Status</th></tr></thead>
-                <tbody>${students.map(s => {
-                    const cnt = getAtt(s.id);
-                    const pct = getPct(s.id);
-                    const hasPay = DB.payments.find(p => p.stuId === s.id && p.status === 'pending');
-                    return `<tr><td class="td-bold">${s.name}</td><td>${cnt}/${DATES.length}</td><td>${pbar(pct)}</td><td>${hasPay ? '<span class="badge b-amber">⚠ To\'lov</span>' : '<span class="badge b-green">Aktiv</span>'}</td></tr>`;
-                }).join('')}</tbody>
-                </table>
-            </div>
-        </div>
-    `;
+    container.innerHTML = `<div class="card"><div class="card-title">📖 Jurnal</div><div class="empty">Jurnal</div></div>`;
 }
 
 function renderMyAttendance(container) {
-    const att = DB.attendance[CU.id] || [];
-    const cnt = att.length;
-    const pct = Math.round(cnt / DATES.length * 100);
-    container.innerHTML = `
-        <div class="card">
-            <div class="card-title">📅 Mening davomatim</div>
-            <div class="sg sg-2">
-                <div class="scard"><div class="sv sv-green">${cnt}</div><div class="sl">Darsga keldim</div></div>
-                <div class="scard"><div class="sv sv-indigo">${pct}%</div><div class="sl">Foiz</div></div>
-            </div>
-            <div class="table-wrap"><table><thead><tr><th>Sana</th><th>Status</th></tr></thead>
-            <tbody>${DATES.map((d, i) => `<tr><td>${d}</td><td>${att[i] === 1 ? '<span class="badge b-green">✓ Keldi</span>' : '<span class="badge" style="background:rgba(239,68,68,0.15);color:#f87171;">✗ Kelmadi</span>'}</td></tr>`).join('')}</tbody>
-            </table></div>
-        </div>
-    `;
+    container.innerHTML = `<div class="card"><div class="card-title">📅 Davomatim</div><div class="empty">Davomat ma'lumotlari</div></div>`;
 }
 
 function renderMyPayment(container) {
-    const pay = DB.payments.find(p => p.stuId === CU.id);
-    const cnt = getAtt(CU.id);
-    container.innerHTML = `
-        <div class="card">
-            <div class="card-title">💰 To'lov holati</div>
-            ${!pay ? `<div class="scard"><div>✅ Hozircha to'lov kerak emas</div><div>${cnt} ta dars</div></div>` :
-              pay.status === 'paid' ? `<div class="pay-card"><div>✅ To'lov tasdiqlangan</div><div>${pay.date}</div></div>` :
-              `<div class="pay-card"><div>⚠️ To'lov qilishingiz kerak!</div><div>${pay.count} ta dars</div><span class="badge b-amber">Kutilmoqda</span></div>`}
-        </div>
-    `;
+    container.innerHTML = `<div class="card"><div class="card-title">💰 To'lovim</div><div class="empty">To'lov holati</div></div>`;
 }
 
-function renderChat(container) {
+async function renderChat(container) {
     container.innerHTML = `
         <div class="card">
             <div class="card-title">💬 Ommaviy chat</div>
-            <div class="card-sub">Xabarlar saqlanadi va real-time yangilanadi</div>
+            <div class="card-sub">Real-time | Barcha qurilmalarda sinxron</div>
             <div class="chat-body" id="chatMessages"></div>
             <div class="chat-row">
                 <input type="text" id="chatInput" placeholder="Xabar yozing..." onkeypress="if(event.key==='Enter')sendChatMsg()">
@@ -731,11 +500,18 @@ function renderChat(container) {
             </div>
         </div>
     `;
-    // Eski xabarlarni yuklash
+    // Eski xabarlarni Supabase'dan yuklash
+    const { data } = await supabase.from('messages').select('*').order('created_at', { ascending: true }).limit(50);
     const container2 = document.getElementById('chatMessages');
-    if (container2) {
+    if (container2 && data) {
         container2.innerHTML = '';
-        DB.messages.forEach(msg => displayMessage(msg));
+        data.forEach(msg => {
+            const div = document.createElement('div');
+            div.className = `cmsg ${msg.user_id === CU?.id ? 'out' : 'in'}`;
+            div.innerHTML = `${msg.user_id !== CU?.id ? `<div class="cmsg-who">${msg.user_name} (${msg.user_role})</div>` : ''}${msg.message}<div class="cmsg-time">${new Date(msg.created_at).toLocaleTimeString()}</div>`;
+            container2.appendChild(div);
+        });
+        container2.scrollTop = container2.scrollHeight;
     }
 }
 
@@ -747,13 +523,22 @@ async function sendChatMsg() {
     await sendMessage(text);
 }
 
-function toggleAddForm(id) {
-    const el = document.getElementById(id);
+function showAddUserForm() {
+    const el = document.getElementById('addUserFormSupabase');
     if (el) el.classList.toggle('open');
 }
 
-// Auto-save har 10 sekundda
-setInterval(() => { if (DB) saveData(); }, 10000);
+// Check Supabase connection
+async function checkSupabase() {
+    const { data, error } = await supabase.from('users').select('count');
+    if (error) {
+        console.error('Supabase xatolik:', error);
+        toast('Supabase ulanish xatolik! Iltimos, URL va KEY ni tekshiring', 'error');
+    } else {
+        console.log('✅ Supabase connected');
+    }
+}
+checkSupabase();
 </script>
 </body>
 </html>
