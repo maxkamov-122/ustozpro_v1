@@ -2,22 +2,19 @@
 <html lang="uz">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=yes">
-    <title>USTOZPRO - Real-time Education Platform</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>USTOZPRO - Real-time Platform</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdn.ably.com/lib/ably.min-1.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: 'Outfit', sans-serif;
             background: #050714;
             color: #f8fafc;
             min-height: 100vh;
-            overflow-x: hidden;
         }
-        
-        /* Animated Background */
         .bg-scene { position: fixed; inset: 0; z-index: 0; overflow: hidden; pointer-events: none; }
         .orb { position: absolute; border-radius: 50%; filter: blur(80px); opacity: 0.35; animation: drift 12s infinite alternate; }
         .orb1 { width: 600px; height: 600px; background: radial-gradient(circle, #6366f1, transparent 70%); top: -200px; left: -150px; }
@@ -25,44 +22,36 @@
         .orb3 { width: 400px; height: 400px; background: radial-gradient(circle, #06b6d4, transparent 70%); top: 40%; left: 40%; animation-delay: -8s; opacity: 0.2; }
         @keyframes drift { from { transform: translate(0,0) scale(1); } to { transform: translate(40px,60px) scale(1.1); } }
         
-        /* Screens */
         .screen { display: none; position: relative; z-index: 1; min-height: 100vh; }
         .screen.active { display: flex; flex-direction: column; }
         @keyframes fadeUp { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: translateY(0); } }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         
-        /* Glass morphism */
         .glass { background: rgba(255,255,255,0.07); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.12); border-radius: 20px; }
-        .glass-card { background: rgba(255,255,255,0.05); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.08); border-radius: 20px; }
         
-        /* Login */
         #loginScreen { align-items: center; justify-content: center; padding: 20px; }
         .login-wrap { width: 100%; max-width: 400px; animation: fadeUp 0.6s ease; }
         .brand-orb {
             width: 80px; height: 80px; border-radius: 24px; margin: 0 auto 16px;
             background: linear-gradient(135deg, #6366f1, #8b5cf6, #06b6d4);
             display: flex; align-items: center; justify-content: center;
-            font-size: 32px; font-weight: 900; color: #fff;
-            box-shadow: 0 0 0 1px rgba(255,255,255,0.2), 0 20px 60px rgba(99,102,241,0.5);
+            font-size: 32px; font-weight: 900;
         }
         .brand-name { font-size: 32px; font-weight: 900; text-align: center; background: linear-gradient(135deg, #fff, #a5b4fc); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        .brand-sub { text-align: center; font-size: 13px; color: #94a3b8; margin-top: 4px; }
         
         .role-tabs { display: flex; gap: 4px; background: rgba(0,0,0,0.3); padding: 4px; border-radius: 12px; margin-bottom: 24px; }
         .role-tab {
             flex: 1; padding: 9px 8px; border-radius: 9px; border: none;
             background: transparent; color: #94a3b8; font-weight: 600; cursor: pointer;
-            transition: all 0.25s;
         }
-        .role-tab.active { background: linear-gradient(135deg, #6366f1, #8b5cf6); color: #fff; box-shadow: 0 4px 16px rgba(99,102,241,0.4); }
+        .role-tab.active { background: linear-gradient(135deg, #6366f1, #8b5cf6); color: #fff; }
         
         .field input {
             width: 100%; padding: 13px 16px; margin-bottom: 16px;
             background: rgba(0,0,0,0.35); border: 1px solid rgba(255,255,255,0.12);
             border-radius: 12px; color: #fff; font-size: 14px;
-            outline: none; transition: all 0.25s;
+            outline: none;
         }
-        .field input:focus { border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,0.2); }
+        .field input:focus { border-color: #6366f1; }
         
         .btn-login {
             width: 100%; padding: 15px;
@@ -70,9 +59,8 @@
             border: none; border-radius: 12px; color: #fff; font-weight: 700;
             cursor: pointer; transition: all 0.3s;
         }
-        .btn-login:hover { transform: translateY(-2px); box-shadow: 0 12px 40px rgba(99,102,241,0.6); }
+        .btn-login:hover { transform: translateY(-2px); }
         
-        /* Topbar */
         .topbar {
             display: flex; align-items: center; gap: 12px; padding: 12px 16px;
             background: rgba(5,7,20,0.85); backdrop-filter: blur(24px);
@@ -83,30 +71,27 @@
             width: 36px; height: 36px; border-radius: 10px;
             background: linear-gradient(135deg, #6366f1, #8b5cf6);
             display: flex; align-items: center; justify-content: center;
-            font-weight: 900; font-size: 14px;
+            font-weight: 900;
         }
         .tb-title { flex: 1; font-weight: 800; background: linear-gradient(135deg, #fff, #a5b4fc); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
         .online-indicator { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #10b981; margin-left: 6px; animation: pulse 1.5s infinite; }
         @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.4; } 100% { opacity: 1; } }
-        .btn-exit { padding: 7px 14px; background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3); border-radius: 8px; color: #f87171; cursor: pointer; font-size: 12px; }
+        .btn-exit { padding: 7px 14px; background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3); border-radius: 8px; color: #f87171; cursor: pointer; }
         
-        /* Navigation */
         .nav-scroll { display: flex; gap: 8px; overflow-x: auto; padding: 0 16px 16px; scrollbar-width: none; }
         .nav-scroll::-webkit-scrollbar { display: none; }
         .ntab {
             padding: 8px 20px; border-radius: 99px; white-space: nowrap;
             background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
-            color: #94a3b8; font-weight: 600; cursor: pointer; transition: all 0.2s;
+            color: #94a3b8; font-weight: 600; cursor: pointer;
         }
         .ntab.active { background: linear-gradient(135deg, #6366f1, #8b5cf6); color: #fff; border: none; }
         
-        /* Content */
         .content { flex: 1; padding: 16px; overflow-y: auto; }
         .card { background: rgba(255,255,255,0.05); backdrop-filter: blur(12px); border-radius: 20px; padding: 20px; margin-bottom: 16px; border: 1px solid rgba(255,255,255,0.08); }
         .card-title { font-size: 18px; font-weight: 700; margin-bottom: 4px; }
         .card-sub { font-size: 12px; color: #94a3b8; }
         
-        /* Stat Grid */
         .sg { display: grid; gap: 12px; margin-bottom: 16px; }
         .sg-2 { grid-template-columns: repeat(2, 1fr); }
         .sg-4 { grid-template-columns: repeat(2, 1fr); }
@@ -115,95 +100,79 @@
             background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.08);
             border-radius: 16px; padding: 16px; text-align: center;
         }
-        .sv { font-size: 28px; font-weight: 800; font-family: 'JetBrains Mono', monospace; }
+        .sv { font-size: 28px; font-weight: 800; font-family: monospace; }
         .sl { font-size: 11px; color: #94a3b8; margin-top: 4px; }
         .sv-indigo { color: #a5b4fc; }
         .sv-green { color: #34d399; }
         .sv-amber { color: #fcd34d; }
         .sv-cyan { color: #67e8f9; }
-        .sv-gold { background: linear-gradient(135deg, #f59e0b, #fbbf24); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
         
-        /* Tables */
-        .table-wrap { overflow-x: auto; border-radius: 12px; }
-        table { width: 100%; border-collapse: collapse; font-size: 13px; }
-        th { text-align: left; padding: 12px; font-size: 10px; font-weight: 700; color: #64748b; text-transform: uppercase; border-bottom: 1px solid rgba(255,255,255,0.08); }
-        td { padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.04); color: #94a3b8; }
-        .td-bold { color: #f8fafc; font-weight: 600; }
-        
-        /* Badges */
-        .badge { display: inline-block; padding: 3px 9px; border-radius: 99px; font-size: 10px; font-weight: 700; }
-        .b-green { background: rgba(16,185,129,0.15); color: #34d399; border: 1px solid rgba(16,185,129,0.25); }
-        .b-amber { background: rgba(245,158,11,0.15); color: #fcd34d; border: 1px solid rgba(245,158,11,0.25); }
-        .b-indigo { background: rgba(99,102,241,0.2); color: #a5b4fc; border: 1px solid rgba(99,102,241,0.3); }
-        .b-red { background: rgba(239,68,68,0.12); color: #f87171; border: 1px solid rgba(239,68,68,0.2); }
-        
-        /* Student Row */
-        .srow { display: flex; align-items: center; gap: 12px; padding: 12px; background: rgba(0,0,0,0.25); border-radius: 12px; margin-bottom: 8px; border: 1px solid rgba(255,255,255,0.05); }
+        .srow { display: flex; align-items: center; gap: 12px; padding: 12px; background: rgba(0,0,0,0.25); border-radius: 12px; margin-bottom: 8px; }
         .avatar { width: 40px; height: 40px; border-radius: 10px; background: linear-gradient(135deg, #6366f1, #8b5cf6); display: flex; align-items: center; justify-content: center; font-weight: 700; }
         .sinfo { flex: 1; }
-        .sname { font-weight: 600; color: #f8fafc; }
+        .sname { font-weight: 600; }
         .smeta { font-size: 11px; color: #94a3b8; margin-top: 2px; }
-        .mark-btn { padding: 6px 14px; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; border: 1px solid; transition: all 0.2s; }
+        .mark-btn { padding: 6px 14px; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; border: 1px solid; background: rgba(255,255,255,0.05); color: #94a3b8; border-color: rgba(255,255,255,0.1); }
         .mb-marked { background: rgba(16,185,129,0.15); color: #34d399; border-color: rgba(16,185,129,0.3); }
-        .mb-unmarked { background: rgba(255,255,255,0.05); color: #94a3b8; border-color: rgba(255,255,255,0.1); }
         
-        /* Progress Bar */
-        .pbar { height: 5px; background: rgba(255,255,255,0.08); border-radius: 99px; overflow: hidden; margin: 6px 0 3px; }
-        .pfill { height: 100%; border-radius: 99px; transition: width 0.6s ease; }
-        .pf-green { background: linear-gradient(90deg, #10b981, #34d399); }
-        .pf-amber { background: linear-gradient(90deg, #f59e0b, #fbbf24); }
+        .badge { display: inline-block; padding: 3px 9px; border-radius: 99px; font-size: 10px; font-weight: 700; }
+        .b-green { background: rgba(16,185,129,0.15); color: #34d399; }
+        .b-amber { background: rgba(245,158,11,0.15); color: #fcd34d; }
         
-        /* Chat */
-        .chat-body { min-height: 300px; max-height: 400px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; padding: 4px; }
-        .cmsg { max-width: 80%; padding: 10px 14px; border-radius: 14px; font-size: 13px; line-height: 1.4; }
+        .chat-body { min-height: 300px; max-height: 400px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; }
+        .cmsg { max-width: 80%; padding: 10px 14px; border-radius: 14px; font-size: 13px; }
         .cmsg.out { align-self: flex-end; background: linear-gradient(135deg, #6366f1, #8b5cf6); border-bottom-right-radius: 4px; }
         .cmsg.in { align-self: flex-start; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.1); border-bottom-left-radius: 4px; }
         .cmsg-who { font-size: 10px; font-weight: 700; color: #94a3b8; margin-bottom: 4px; }
         .cmsg-time { font-size: 9px; color: #64748b; margin-top: 4px; }
         .chat-row { display: flex; gap: 8px; }
         .chat-row input { flex: 1; padding: 12px; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; color: #fff; outline: none; }
-        .chat-row input:focus { border-color: #6366f1; }
         .btn-send { padding: 12px 20px; background: linear-gradient(135deg, #6366f1, #8b5cf6); border: none; border-radius: 12px; color: #fff; cursor: pointer; }
         
-        /* Payment Card */
         .pay-card { display: flex; justify-content: space-between; align-items: center; padding: 14px; background: rgba(245,158,11,0.08); border: 1px solid rgba(245,158,11,0.2); border-radius: 12px; margin-bottom: 8px; }
         .pay-status-btn { padding: 8px 16px; background: linear-gradient(135deg, #f59e0b, #fbbf24); border: none; border-radius: 8px; color: #1a1a00; font-weight: 700; cursor: pointer; }
-        .pay-status-btn.paid { background: rgba(16,185,129,0.2); color: #34d399; }
         
-        /* Toast */
-        .toast-wrap { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 9999; display: flex; flex-direction: column; gap: 8px; align-items: center; }
+        .add-form { display: none; margin-top: 16px; padding: 16px; background: rgba(0,0,0,0.3); border-radius: 12px; }
+        .add-form.open { display: block; }
+        .fg { display: grid; gap: 12px; }
+        .fg2 { grid-template-columns: repeat(2, 1fr); }
+        @media (max-width: 480px) { .fg2 { grid-template-columns: 1fr; } }
+        .finput { width: 100%; padding: 10px 12px; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: #fff; outline: none; }
+        
+        .toast-wrap { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 9999; }
         .toast { padding: 10px 20px; border-radius: 12px; font-size: 13px; color: #fff; backdrop-filter: blur(20px); animation: fadeIn 0.3s ease; }
         .toast.success { background: rgba(16,185,129,0.9); }
         .toast.warning { background: rgba(245,158,11,0.9); }
         .toast.error { background: rgba(239,68,68,0.9); }
         .toast.info { background: rgba(99,102,241,0.9); }
-        
-        /* Form */
-        .add-form { display: none; margin-top: 16px; padding: 16px; background: rgba(0,0,0,0.3); border-radius: 12px; }
-        .add-form.open { display: block; animation: fadeUp 0.25s ease; }
-        .fg { display: grid; gap: 12px; }
-        .fg2 { grid-template-columns: repeat(2, 1fr); }
-        @media (max-width: 480px) { .fg2 { grid-template-columns: 1fr; } }
-        .finput { width: 100%; padding: 10px 12px; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: #fff; outline: none; }
-        .finput:focus { border-color: #6366f1; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         
         .view { display: none; }
         .view.active { display: block; animation: fadeUp 0.3s ease; }
         .empty { text-align: center; padding: 40px; color: #64748b; }
         
-        .typing-indicator { font-size: 11px; color: #64748b; padding: 4px 12px; font-style: italic; }
+        .pbar { height: 5px; background: rgba(255,255,255,0.08); border-radius: 99px; overflow: hidden; margin: 6px 0 3px; }
+        .pfill { height: 100%; border-radius: 99px; transition: width 0.6s ease; }
+        .pf-green { background: linear-gradient(90deg, #10b981, #34d399); }
+        .pf-amber { background: linear-gradient(90deg, #f59e0b, #fbbf24); }
+        
+        .table-wrap { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        th { text-align: left; padding: 12px; font-size: 10px; color: #64748b; border-bottom: 1px solid rgba(255,255,255,0.08); }
+        td { padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.04); color: #94a3b8; }
+        .td-bold { color: #fff; font-weight: 600; }
     </style>
 </head>
 <body>
 <div class="bg-scene"><div class="orb orb1"></div><div class="orb orb2"></div><div class="orb orb3"></div></div>
 
-<!-- LOGIN SCREEN -->
+<!-- LOGIN -->
 <div id="loginScreen" class="screen active">
     <div class="login-wrap">
         <div class="brand-orb">UP</div>
         <div class="brand-name">USTOZPRO</div>
-        <div class="brand-sub">O'quv markazi boshqaruvi platformasi</div>
-        <div class="glass-card" style="margin-top: 24px; padding: 28px;">
+        <div class="brand-sub" style="text-align:center; margin-top:4px;">O'quv markazi boshqaruvi</div>
+        <div class="glass" style="margin-top: 24px; padding: 28px;">
             <div class="role-tabs">
                 <button class="role-tab" onclick="setRole('dasturchi')">👨‍💻 Dasturchi</button>
                 <button class="role-tab active" onclick="setRole('menejer')">📊 Menejer</button>
@@ -214,10 +183,7 @@
             <div class="field"><input type="password" id="passIn" placeholder="Parol" onkeypress="if(event.key==='Enter')doLogin()"></div>
             <button class="btn-login" onclick="doLogin()">Kirish →</button>
             <div style="text-align: center; margin-top: 16px; font-size: 11px; color: #475569;">
-                <br>
-                <br>
-                <br>
-                <br>
+                Demo: dasturchi/dev123 | menejer/men123 | ali/tch123 | bobur/stu123
             </div>
         </div>
     </div>
@@ -228,35 +194,24 @@
     <div class="topbar">
         <div class="tb-logo">UP</div>
         <div class="tb-title">USTOZPRO <span id="onlineBadge" class="online-indicator"></span></div>
-        <div id="tbName" style="font-size: 13px; font-weight: 500;"></div>
+        <div id="tbName" style="font-size:13px;"></div>
         <button class="btn-exit" onclick="doLogout()">Chiqish</button>
     </div>
     <div class="nav-scroll" id="navTabs"></div>
-    <div class="content">
-        <div id="viewContainer"></div>
-    </div>
+    <div class="content"><div id="viewContainer"></div></div>
 </div>
 
 <div class="toast-wrap" id="toastWrap"></div>
 
 <script>
-// ============ ABLY KONFIGURATSIYA ============
+// ============ ABLY API KEY ============
 const ABLY_API_KEY = 'GSQZcQ.qw01Ow:t1CiUe_16VfC_B4L56oe5BT3tGuwvT6WkbxTDZ5dsSk';
 
-// ============ TELEGRAM WEB APP ============
-const tg = window.Telegram?.WebApp;
-if (tg) { tg.expand(); tg.ready(); }
+// ============ STORAGE KEY ============
+const STORAGE_KEY = 'ustozpro_full_data';
 
-// ============ DATABASE (LocalStorage bilan saqlanadi) ============
-const STORAGE_KEY = 'ustozpro_data';
-
-function loadData() {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    if (saved) {
-        try {
-            return JSON.parse(saved);
-        } catch(e) {}
-    }
+// ============ DEFAULT DATA ============
+function getDefaultData() {
     return {
         users: [
             { id: 1, login: 'dasturchi', pass: 'dev123', role: 'dasturchi', name: 'Dasturchi Admin' },
@@ -272,26 +227,42 @@ function loadData() {
             6: [1,1,1,0,1,1,1,0,1,1,1,0,1,1,0,0]
         },
         payments: [],
+        messages: [],  // Chat xabarlari SAQLANADI!
         nextId: 7
     };
 }
 
-function saveData() { localStorage.setItem(STORAGE_KEY, JSON.stringify(DB)); }
+// ============ LOAD/SAVE DATA ============
+function loadData() {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) {
+        try {
+            const data = JSON.parse(saved);
+            // messages array borligini tekshir
+            if (!data.messages) data.messages = [];
+            if (!data.payments) data.payments = [];
+            if (!data.attendance) data.attendance = {};
+            return data;
+        } catch(e) { console.log(e); }
+    }
+    return getDefaultData();
+}
+
+function saveData() {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(DB));
+}
 
 let DB = loadData();
 
-// ============ GLOBAL VARIABLES ============
+// ============ GLOBAL ============
 let CU = null;
 let selectedRole = 'menejer';
 let ably = null;
 let chatChannel = null;
-let notifyChannel = null;
-let statsChannel = null;
-let typingTimeout = null;
 
 const DATES = ['Apr 1','Apr 2','Apr 3','Apr 4','Apr 5','Apr 7','Apr 8','Apr 9','Apr 10','Apr 11','Apr 12','Apr 13','Apr 14','Apr 15','Apr 16','Apr 17'];
 
-// ============ HELPER FUNCTIONS ============
+// ============ HELPERS ============
 function toast(msg, type = 'info') {
     const wrap = document.getElementById('toastWrap');
     const t = document.createElement('div');
@@ -308,81 +279,47 @@ function getUser(id) { return DB.users.find(u => u.id === id); }
 function getTch() { return DB.users.filter(u => u.role === 'oqutuvchi'); }
 function getStu() { return DB.users.filter(u => u.role === 'oquvchi'); }
 function getMyStudents(tchId) { return DB.users.filter(u => u.role === 'oquvchi' && u.teacherId === tchId); }
-function pbar(pct) { const cls = pct >= 80 ? 'pf-green' : 'pf-amber'; return `<div class="pbar"><div class="pfill ${cls}" style="width:${pct}%"></div></div><span style="font-size:11px;color:#94a3b8">${pct}%</span>`; }
+function pbar(pct) { const cls = pct >= 80 ? 'pf-green' : 'pf-amber'; return `<div class="pbar"><div class="pfill ${cls}" style="width:${pct}%"></div></div><span style="font-size:11px">${pct}%</span>`; }
 
-// ============ ABLY REAL-TIME INIT ============
+// ============ ABLY REAL-TIME ============
 async function initAbly() {
     try {
         ably = new Ably.Realtime({ key: ABLY_API_KEY });
-        
-        await new Promise((resolve) => {
-            ably.connection.once('connected', resolve);
-        });
-        
-        console.log('✅ Ably connected!');
+        await new Promise((resolve) => { ably.connection.once('connected', resolve); });
+        console.log('✅ Ably connected');
         document.getElementById('onlineBadge')?.classList.add('online-indicator');
         toast('🔴 Real-time ulandi!', 'success');
         
-        // Chat kanali
         chatChannel = ably.channels.get('ustozpro:chat');
         await chatChannel.subscribe('message', (msg) => {
-            displayRealtimeMessage(msg.data);
+            // Kelgan xabarni localga saqlash
+            DB.messages.push(msg.data);
+            saveData();
+            displayMessage(msg.data);
         });
         
-        // Bildirishnoma kanali
-        notifyChannel = ably.channels.get('ustozpro:notify');
-        await notifyChannel.subscribe('notify', (notif) => {
-            toast(notif.data.message, notif.data.type);
-            if (notif.data.type === 'warning') {
-                const audio = new Audio('https://www.soundjay.com/misc/sounds/bell-ringing-05.mp3');
-                audio.play().catch(e => console.log('Audio play failed'));
-            }
-        });
-        
-        // Statistika kanali
-        statsChannel = ably.channels.get('ustozpro:stats');
-        await statsChannel.subscribe('update', (update) => {
-            if (update.data.type === 'attendance' && document.getElementById('globalAttPercent')) {
-                document.getElementById('globalAttPercent').innerHTML = `O'rtacha davomat: ${update.data.value}%`;
-            }
-        });
-        
-        // Typing indicator
-        const typingChannel = ably.channels.get('ustozpro:typing');
-        await typingChannel.subscribe('typing', (data) => {
-            const typingDiv = document.getElementById('typingIndicator');
-            if (typingDiv && data.data.userId !== CU?.id) {
-                typingDiv.textContent = `${data.data.name} yozmoqda...`;
-                setTimeout(() => { typingDiv.textContent = ''; }, 1500);
-            }
-        });
-        
-    } catch (err) {
-        console.error('Ably error:', err);
-        toast('Real-time ulanishda xatolik!', 'error');
-    }
+    } catch(err) { console.error('Ably error:', err); toast('Real-time xatolik', 'error'); }
 }
 
-async function sendRealtimeMessage(text) {
-    if (!chatChannel) { toast('Real-time ulanish yo\'q!', 'warning'); return false; }
-    const msg = { id: Date.now(), userId: CU.id, userName: CU.name, userRole: CU.role, text: text, time: new Date().toISOString() };
+async function sendMessage(text) {
+    if (!chatChannel) { toast('Ulanish yo\'q', 'warning'); return false; }
+    const msg = {
+        id: Date.now(),
+        userId: CU.id,
+        userName: CU.name,
+        userRole: CU.role,
+        text: text,
+        time: new Date().toISOString()
+    };
     await chatChannel.publish('message', msg);
-    displayRealtimeMessage(msg);
+    // O'z xabarini localga saqlash
+    DB.messages.push(msg);
+    saveData();
+    displayMessage(msg);
     return true;
 }
 
-async function sendRealtimeNotification(title, message, type) {
-    if (!notifyChannel) return;
-    await notifyChannel.publish('notify', { id: Date.now(), title: title, message: message, type: type, fromUser: CU.name, time: new Date().toISOString() });
-}
-
-async function sendTypingIndicator() {
-    if (!ably) return;
-    const typingChannel = ably.channels.get('ustozpro:typing');
-    await typingChannel.publish('typing', { userId: CU.id, name: CU.name });
-}
-
-function displayRealtimeMessage(msg) {
+function displayMessage(msg) {
     const container = document.getElementById('chatMessages');
     if (!container) return;
     const isOwn = msg.userId === CU?.id;
@@ -397,7 +334,8 @@ function displayRealtimeMessage(msg) {
 function setRole(role) {
     selectedRole = role;
     document.querySelectorAll('.role-tab').forEach((t, i) => {
-        t.classList.toggle('active', ['dasturchi', 'menejer', 'oqutuvchi', 'oquvchi'][i] === role);
+        const roles = ['dasturchi', 'menejer', 'oqutuvchi', 'oquvchi'];
+        t.classList.toggle('active', roles[i] === role);
     });
 }
 
@@ -491,7 +429,7 @@ function loadView(viewId) {
 function renderDashboard(container) {
     const teachers = getTch().length;
     const students = getStu().length;
-    const pendingPayments = DB.payments.filter(p => p.status === 'pending').length;
+    const pending = DB.payments.filter(p => p.status === 'pending').length;
     let totalAtt = 0;
     getStu().forEach(s => totalAtt += getAtt(s.id));
     const avgAtt = students ? Math.round(totalAtt / students / DATES.length * 100) : 0;
@@ -500,16 +438,16 @@ function renderDashboard(container) {
         <div class="sg sg-4">
             <div class="scard"><div class="sv sv-cyan">${teachers}</div><div class="sl">O'qituvchilar</div></div>
             <div class="scard"><div class="sv sv-indigo">${students}</div><div class="sl">O'quvchilar</div></div>
-            <div class="scard"><div class="sv sv-amber">${pendingPayments}</div><div class="sl">To'lov kutilmoqda</div></div>
+            <div class="scard"><div class="sv sv-amber">${pending}</div><div class="sl">To'lov kutilmoqda</div></div>
             <div class="scard"><div class="sv sv-green">${avgAtt}%</div><div class="sl">O'rtacha davomat</div></div>
         </div>
         <div class="card">
             <div class="card-title">📈 Tizim holati</div>
-            <div class="card-sub">Real-time yangilanadi</div>
-            <div id="globalAttPercent" style="margin-top: 16px;">O'rtacha davomat: ${avgAtt}%</div>
-            <div style="margin-top: 12px; padding: 12px; background: rgba(0,0,0,0.2); border-radius: 12px;">
-                <div>✅ Ably real-time: Faol</div>
-                <div>🔴 Online: ${ably?.connection?.state === 'connected' ? 'Ulangan' : 'Ulanmagan'}</div>
+            <div class="card-sub">Ma'lumotlar localStorageda saqlanadi</div>
+            <div style="margin-top:12px; padding:12px; background:rgba(0,0,0,0.2); border-radius:12px;">
+                <div>✅ Chat xabarlari: ${DB.messages.length} ta</div>
+                <div>👥 Foydalanuvchilar: ${DB.users.length} ta</div>
+                <div>🔴 Ably: ${ably?.connection?.state === 'connected' ? 'Ulangan' : 'Ulanmagan'}</div>
             </div>
         </div>
     `;
@@ -520,8 +458,7 @@ function renderUsers(container) {
     container.innerHTML = `
         <div class="card">
             <div class="card-title">👥 Foydalanuvchilar</div>
-            <div class="card-sub">Jami: ${nonAdmin.length} ta foydalanuvchi</div>
-            <button class="btn-login" style="margin: 16px 0; padding: 10px;" onclick="showAddUserForm()">+ Yangi foydalanuvchi</button>
+            <button class="btn-login" style="margin:16px 0; padding:10px;" onclick="toggleAddForm('addUserForm')">+ Yangi qo'shish</button>
             <div id="addUserForm" class="add-form">
                 <div class="fg fg2">
                     <input class="finput" id="newName" placeholder="Ism familiya">
@@ -535,17 +472,52 @@ function renderUsers(container) {
                         <option value="oquvchi">O'quvchi</option>
                     </select>
                 </div>
-                <button class="btn-login" style="padding: 8px;" onclick="addUser()">Saqlash</button>
+                <button class="btn-login" style="padding:8px;" onclick="addNewUser()">✅ Saqlash</button>
             </div>
             ${nonAdmin.map(u => `
                 <div class="srow">
                     <div class="avatar">${u.name[0]}</div>
                     <div class="sinfo"><div class="sname">${u.name}</div><div class="smeta">${u.role} | ${u.login}</div></div>
-                    <button class="mark-btn mb-unmarked" onclick="deleteUser(${u.id})">❌</button>
+                    <button class="mark-btn" onclick="deleteUser(${u.id})">❌ O'chirish</button>
                 </div>
             `).join('')}
         </div>
     `;
+}
+
+function addNewUser() {
+    const name = document.getElementById('newName').value.trim();
+    const login = document.getElementById('newLogin').value.trim();
+    const pass = document.getElementById('newPass').value.trim();
+    const role = document.getElementById('newRole').value;
+    
+    if (!name || !login || !pass) { toast('Hamma maydonlarni to\'ldiring!', 'warning'); return; }
+    if (DB.users.find(u => u.login === login)) { toast('Bunday login mavjud!', 'error'); return; }
+    
+    const newUser = { id: DB.nextId++, login, pass, role, name };
+    if (role === 'oqutuvchi') newUser.subject = 'Fan';
+    DB.users.push(newUser);
+    if (role === 'oquvchi') DB.attendance[newUser.id] = [];
+    
+    saveData();
+    toast(`${name} qo'shildi!`, 'success');
+    document.getElementById('addUserForm').classList.remove('open');
+    document.getElementById('newName').value = '';
+    document.getElementById('newLogin').value = '';
+    document.getElementById('newPass').value = '';
+    loadView('users');
+}
+
+function deleteUser(id) {
+    if (confirm('Rostdan ham o\'chirmoqchimisiz?')) {
+        DB.users = DB.users.filter(u => u.id !== id);
+        delete DB.attendance[id];
+        DB.payments = DB.payments.filter(p => p.stuId !== id);
+        saveData();
+        toast('Foydalanuvchi o\'chirildi', 'error');
+        loadView('users');
+        if (CU?.role === 'menejer') { loadView('teachers'); loadView('students'); }
+    }
 }
 
 function renderTeachers(container) {
@@ -553,7 +525,7 @@ function renderTeachers(container) {
     container.innerHTML = `
         <div class="card">
             <div class="card-title">👨‍🏫 O'qituvchilar</div>
-            <button class="btn-login" style="margin: 16px 0; padding: 10px;" onclick="showAddTeacherForm()">+ Qo'shish</button>
+            <button class="btn-login" style="margin:16px 0; padding:10px;" onclick="toggleAddForm('addTeacherForm')">+ Qo'shish</button>
             <div id="addTeacherForm" class="add-form">
                 <div class="fg fg2">
                     <input class="finput" id="tchName" placeholder="Ism familiya">
@@ -563,7 +535,7 @@ function renderTeachers(container) {
                     <input class="finput" type="password" id="tchPass" placeholder="Parol">
                     <input class="finput" id="tchSubject" placeholder="Fan">
                 </div>
-                <button class="btn-login" style="padding: 8px;" onclick="addTeacher()">Saqlash</button>
+                <button class="btn-login" style="padding:8px;" onclick="addNewTeacher()">✅ Saqlash</button>
             </div>
             ${teachers.map(t => `
                 <div class="srow">
@@ -575,12 +547,28 @@ function renderTeachers(container) {
     `;
 }
 
+function addNewTeacher() {
+    const name = document.getElementById('tchName').value.trim();
+    const login = document.getElementById('tchLogin').value.trim();
+    const pass = document.getElementById('tchPass').value.trim();
+    const subject = document.getElementById('tchSubject').value.trim();
+    
+    if (!name || !login || !pass) { toast('To\'ldiring!', 'warning'); return; }
+    if (DB.users.find(u => u.login === login)) { toast('Login mavjud!', 'error'); return; }
+    
+    DB.users.push({ id: DB.nextId++, login, pass, role: 'oqutuvchi', name, subject: subject || 'Fan' });
+    saveData();
+    toast(`${name} qo'shildi`, 'success');
+    document.getElementById('addTeacherForm').classList.remove('open');
+    loadView('teachers');
+}
+
 function renderStudents(container) {
     const students = getStu();
     container.innerHTML = `
         <div class="card">
             <div class="card-title">🎓 O'quvchilar</div>
-            <button class="btn-login" style="margin: 16px 0; padding: 10px;" onclick="showAddStudentForm()">+ Qo'shish</button>
+            <button class="btn-login" style="margin:16px 0; padding:10px;" onclick="toggleAddForm('addStudentForm')">+ Qo'shish</button>
             <div id="addStudentForm" class="add-form">
                 <div class="fg fg2">
                     <input class="finput" id="stuName" placeholder="Ism familiya">
@@ -588,21 +576,37 @@ function renderStudents(container) {
                 </div>
                 <div class="fg fg2">
                     <input class="finput" type="password" id="stuPass" placeholder="Parol">
-                    <select class="finput" id="stuTeacher">
+                    <select class="finput" id="stuTeacherId">
                         <option value="">O'qituvchi tanlang</option>
                         ${getTch().map(t => `<option value="${t.id}">${t.name}</option>`).join('')}
                     </select>
                 </div>
-                <button class="btn-login" style="padding: 8px;" onclick="addStudent()">Saqlash</button>
+                <button class="btn-login" style="padding:8px;" onclick="addNewStudent()">✅ Saqlash</button>
             </div>
             ${students.map(s => {
                 const teacher = getUser(s.teacherId);
-                const attCount = getAtt(s.id);
-                const pct = getPct(s.id);
-                return `<div class="srow"><div class="avatar">${s.name[0]}</div><div class="sinfo"><div class="sname">${s.name}</div><div class="smeta">${teacher?.name || 'O\'qituvchi yo\'q'} | ${attCount}/${DATES.length} dars (${pct}%)</div></div></div>`;
+                return `<div class="srow"><div class="avatar">${s.name[0]}</div><div class="sinfo"><div class="sname">${s.name}</div><div class="smeta">${teacher?.name || 'O\'qituvchi yo\'q'} | ${getAtt(s.id)} ta dars</div></div></div>`;
             }).join('')}
         </div>
     `;
+}
+
+function addNewStudent() {
+    const name = document.getElementById('stuName').value.trim();
+    const login = document.getElementById('stuLogin').value.trim();
+    const pass = document.getElementById('stuPass').value.trim();
+    const teacherId = parseInt(document.getElementById('stuTeacherId').value);
+    
+    if (!name || !login || !pass || !teacherId) { toast('To\'ldiring!', 'warning'); return; }
+    if (DB.users.find(u => u.login === login)) { toast('Login mavjud!', 'error'); return; }
+    
+    const id = DB.nextId++;
+    DB.users.push({ id, login, pass, role: 'oquvchi', name, teacherId });
+    DB.attendance[id] = [];
+    saveData();
+    toast(`${name} qo'shildi`, 'success');
+    document.getElementById('addStudentForm').classList.remove('open');
+    loadView('students');
 }
 
 function renderPayments(container) {
@@ -610,13 +614,22 @@ function renderPayments(container) {
     container.innerHTML = `
         <div class="card">
             <div class="card-title">💰 To'lovlar</div>
-            <div class="card-sub">Kutilayotgan to'lovlar: ${pending.length} ta</div>
             ${pending.length ? pending.map(p => {
                 const student = getUser(p.stuId);
-                return `<div class="pay-card"><div><strong>${student?.name}</strong><br><small>${p.count} ta darsga kelgan</small></div><button class="pay-status-btn" onclick="confirmPayment(${p.stuId})">✅ Tasdiqlash</button></div>`;
+                return `<div class="pay-card"><div><strong>${student?.name}</strong><br><small>${p.count} ta dars</small></div><button class="pay-status-btn" onclick="confirmPay(${p.stuId})">✅ Tasdiqlash</button></div>`;
             }).join('') : '<div class="empty">✅ Barcha to\'lovlar to\'langan</div>'}
         </div>
     `;
+}
+
+function confirmPay(stuId) {
+    const pay = DB.payments.find(p => p.stuId === stuId && p.status === 'pending');
+    if (pay) {
+        pay.status = 'paid';
+        saveData();
+        toast(`${pay.name} to'lovi tasdiqlandi`, 'success');
+        loadView('payments');
+    }
 }
 
 function renderAttendance(container) {
@@ -626,15 +639,34 @@ function renderAttendance(container) {
     container.innerHTML = `
         <div class="card">
             <div class="card-title">📋 Davomat belgilash</div>
-            <div class="card-sub">${new Date().toLocaleDateString('uz-UZ', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</div>
-            <div id="attendanceList">
-                ${students.map(s => {
-                    const isMarked = (DB.attendance[s.id] || []).includes(today);
-                    return `<div class="srow"><div class="avatar">${s.name[0]}</div><div class="sinfo"><div class="sname">${s.name}</div><div class="smeta">${getAtt(s.id)} ta dars</div></div><button class="mark-btn ${isMarked ? 'mb-marked' : 'mb-unmarked'}" onclick="toggleAttendance(${s.id})">${isMarked ? '✓ Keldi' : 'Belgilash'}</button></div>`;
-                }).join('')}
-            </div>
+            <div class="card-sub">${new Date().toLocaleDateString('uz-UZ')}</div>
+            ${students.map(s => {
+                const isMarked = (DB.attendance[s.id] || []).includes(today);
+                return `<div class="srow"><div class="avatar">${s.name[0]}</div><div class="sinfo"><div class="sname">${s.name}</div><div class="smeta">${getAtt(s.id)} ta dars</div></div><button class="mark-btn ${isMarked ? 'mb-marked' : ''}" onclick="toggleAtt(${s.id})">${isMarked ? '✓ Keldi' : 'Belgilash'}</button></div>`;
+            }).join('')}
         </div>
     `;
+}
+
+function toggleAtt(stuId) {
+    if (!DB.attendance[stuId]) DB.attendance[stuId] = [];
+    const today = new Date().toDateString();
+    const idx = DB.attendance[stuId].indexOf(today);
+    if (idx >= 0) DB.attendance[stuId].splice(idx, 1);
+    else DB.attendance[stuId].push(today);
+    saveData();
+    
+    const cnt = getAtt(stuId);
+    if (cnt >= 14) {
+        const existing = DB.payments.find(p => p.stuId === stuId && p.status === 'pending');
+        if (!existing) {
+            const student = getUser(stuId);
+            DB.payments.push({ stuId, name: student.name, count: cnt, status: 'pending', date: new Date().toLocaleDateString() });
+            saveData();
+            toast(`⚠️ ${student.name} to'lov kerak!`, 'warning');
+        }
+    }
+    loadView('attendance');
 }
 
 function renderJournal(container) {
@@ -643,16 +675,13 @@ function renderJournal(container) {
         <div class="card">
             <div class="card-title">📖 Jurnal</div>
             <div class="table-wrap">
-                <table>
-                    <thead><tr><th>O'quvchi</th><th>Keldi</th><th>Progress</th><th>Status</th></tr></thead>
-                    <tbody>
-                        ${students.map(s => {
-                            const cnt = getAtt(s.id);
-                            const pct = getPct(s.id);
-                            const hasPay = DB.payments.find(p => p.stuId === s.id && p.status === 'pending');
-                            return `<tr><td class="td-bold">${s.name}</td><td>${cnt}/${DATES.length}</td><td>${pbar(pct)}</td><td>${hasPay ? '<span class="badge b-amber">⚠ To\'lov</span>' : '<span class="badge b-green">Aktiv</span>'}</td></tr>`;
-                        }).join('')}
-                    </tbody>
+                <table><thead><tr><th>O'quvchi</th><th>Keldi</th><th>Progress</th><th>Status</th></tr></thead>
+                <tbody>${students.map(s => {
+                    const cnt = getAtt(s.id);
+                    const pct = getPct(s.id);
+                    const hasPay = DB.payments.find(p => p.stuId === s.id && p.status === 'pending');
+                    return `<tr><td class="td-bold">${s.name}</td><td>${cnt}/${DATES.length}</td><td>${pbar(pct)}</td><td>${hasPay ? '<span class="badge b-amber">⚠ To\'lov</span>' : '<span class="badge b-green">Aktiv</span>'}</td></tr>`;
+                }).join('')}</tbody>
                 </table>
             </div>
         </div>
@@ -670,14 +699,9 @@ function renderMyAttendance(container) {
                 <div class="scard"><div class="sv sv-green">${cnt}</div><div class="sl">Darsga keldim</div></div>
                 <div class="scard"><div class="sv sv-indigo">${pct}%</div><div class="sl">Foiz</div></div>
             </div>
-            <div class="table-wrap">
-                <table>
-                    <thead><tr><th>Sana</th><th>Status</th></tr></thead>
-                    <tbody>
-                        ${DATES.map((d, i) => `<tr><td>${d}</td><td>${att[i] === 1 ? '<span class="badge b-green">✓ Keldi</span>' : '<span class="badge b-red">✗ Kelmadi</span>'}</td></tr>`).join('')}
-                    </tbody>
-                </table>
-            </div>
+            <div class="table-wrap"><table><thead><tr><th>Sana</th><th>Status</th></tr></thead>
+            <tbody>${DATES.map((d, i) => `<tr><td>${d}</td><td>${att[i] === 1 ? '<span class="badge b-green">✓ Keldi</span>' : '<span class="badge" style="background:rgba(239,68,68,0.15);color:#f87171;">✗ Kelmadi</span>'}</td></tr>`).join('')}</tbody>
+            </table></div>
         </div>
     `;
 }
@@ -685,13 +709,12 @@ function renderMyAttendance(container) {
 function renderMyPayment(container) {
     const pay = DB.payments.find(p => p.stuId === CU.id);
     const cnt = getAtt(CU.id);
-    const pct = getPct(CU.id);
     container.innerHTML = `
         <div class="card">
             <div class="card-title">💰 To'lov holati</div>
-            ${!pay ? `<div class="scard"><div>✅ Hozircha to'lov kerak emas</div><div>${cnt}/${DATES.length} dars (${pct}%)</div></div>` :
-              pay.status === 'paid' ? `<div class="pay-card"><div>✅ To'lov tasdiqlangan</div><div>${pay.date}</div><span class="badge b-green">To'landi</span></div>` :
-              `<div class="pay-card"><div>⚠️ To'lov qilishingiz kerak!</div><div>${pay.count} ta darsga keldingiz</div><span class="badge b-amber">Kutilmoqda</span></div>`}
+            ${!pay ? `<div class="scard"><div>✅ Hozircha to'lov kerak emas</div><div>${cnt} ta dars</div></div>` :
+              pay.status === 'paid' ? `<div class="pay-card"><div>✅ To'lov tasdiqlangan</div><div>${pay.date}</div></div>` :
+              `<div class="pay-card"><div>⚠️ To'lov qilishingiz kerak!</div><div>${pay.count} ta dars</div><span class="badge b-amber">Kutilmoqda</span></div>`}
         </div>
     `;
 }
@@ -700,129 +723,37 @@ function renderChat(container) {
     container.innerHTML = `
         <div class="card">
             <div class="card-title">💬 Ommaviy chat</div>
-            <div class="card-sub">Real-time xabar almashish</div>
-            <div id="typingIndicator" class="typing-indicator"></div>
+            <div class="card-sub">Xabarlar saqlanadi va real-time yangilanadi</div>
             <div class="chat-body" id="chatMessages"></div>
             <div class="chat-row">
-                <input type="text" id="chatInput" placeholder="Xabar yozing..." onkeypress="if(event.key==='Enter')sendChatMessage()" oninput="onChatTyping()">
-                <button class="btn-send" onclick="sendChatMessage()">➤</button>
+                <input type="text" id="chatInput" placeholder="Xabar yozing..." onkeypress="if(event.key==='Enter')sendChatMsg()">
+                <button class="btn-send" onclick="sendChatMsg()">➤</button>
             </div>
         </div>
     `;
-    loadChatHistory();
+    // Eski xabarlarni yuklash
+    const container2 = document.getElementById('chatMessages');
+    if (container2) {
+        container2.innerHTML = '';
+        DB.messages.forEach(msg => displayMessage(msg));
+    }
 }
 
-function onChatTyping() {
-    if (typingTimeout) clearTimeout(typingTimeout);
-    sendTypingIndicator();
-    typingTimeout = setTimeout(() => {}, 1000);
-}
-
-async function sendChatMessage() {
+async function sendChatMsg() {
     const input = document.getElementById('chatInput');
     const text = input.value.trim();
     if (!text) return;
     input.value = '';
-    await sendRealtimeMessage(text);
+    await sendMessage(text);
 }
 
-async function loadChatHistory() {
-    const container = document.getElementById('chatMessages');
-    if (container) container.innerHTML = '<div class="empty">💬 Xabar yozing...</div>';
+function toggleAddForm(id) {
+    const el = document.getElementById(id);
+    if (el) el.classList.toggle('open');
 }
 
-// ============ CRUD OPERATIONS ============
-function showAddUserForm() { document.getElementById('addUserForm')?.classList.toggle('open'); }
-function showAddTeacherForm() { document.getElementById('addTeacherForm')?.classList.toggle('open'); }
-function showAddStudentForm() { document.getElementById('addStudentForm')?.classList.toggle('open'); }
-
-function addUser() {
-    const name = document.getElementById('newName')?.value.trim();
-    const login = document.getElementById('newLogin')?.value.trim();
-    const pass = document.getElementById('newPass')?.value.trim();
-    const role = document.getElementById('newRole')?.value;
-    if (!name || !login || !pass) { toast('To\'ldiring', 'warning'); return; }
-    DB.users.push({ id: DB.nextId++, login, pass, role, name });
-    if (role === 'oquvchi') DB.attendance[DB.nextId - 1] = [];
-    saveData();
-    toast(`${name} qo'shildi`, 'success');
-    loadView('users');
-}
-
-function addTeacher() {
-    const name = document.getElementById('tchName')?.value.trim();
-    const login = document.getElementById('tchLogin')?.value.trim();
-    const pass = document.getElementById('tchPass')?.value.trim();
-    const subject = document.getElementById('tchSubject')?.value.trim();
-    if (!name || !login || !pass) { toast('To\'ldiring', 'warning'); return; }
-    DB.users.push({ id: DB.nextId++, login, pass, role: 'oqutuvchi', name, subject: subject || 'Fan' });
-    saveData();
-    toast(`${name} qo'shildi`, 'success');
-    loadView('teachers');
-}
-
-function addStudent() {
-    const name = document.getElementById('stuName')?.value.trim();
-    const login = document.getElementById('stuLogin')?.value.trim();
-    const pass = document.getElementById('stuPass')?.value.trim();
-    const teacherId = parseInt(document.getElementById('stuTeacher')?.value);
-    if (!name || !login || !pass || !teacherId) { toast('To\'ldiring', 'warning'); return; }
-    const id = DB.nextId++;
-    DB.users.push({ id, login, pass, role: 'oquvchi', name, teacherId });
-    DB.attendance[id] = [];
-    saveData();
-    toast(`${name} qo'shildi`, 'success');
-    loadView('students');
-}
-
-function deleteUser(id) {
-    DB.users = DB.users.filter(u => u.id !== id);
-    delete DB.attendance[id];
-    DB.payments = DB.payments.filter(p => p.stuId !== id);
-    saveData();
-    toast('Foydalanuvchi o\'chirildi', 'error');
-    if (CU?.role === 'dasturchi') loadView('users');
-    else if (CU?.role === 'menejer') { loadView('teachers'); loadView('students'); }
-}
-
-function toggleAttendance(stuId) {
-    if (!DB.attendance[stuId]) DB.attendance[stuId] = [];
-    const today = new Date().toDateString();
-    const idx = DB.attendance[stuId].indexOf(today);
-    if (idx >= 0) DB.attendance[stuId].splice(idx, 1);
-    else DB.attendance[stuId].push(today);
-    saveData();
-    
-    // Check payment trigger (14 dars)
-    const cnt = getAtt(stuId);
-    if (cnt >= 14) {
-        const existing = DB.payments.find(p => p.stuId === stuId && p.status === 'pending');
-        if (!existing) {
-            const student = getUser(stuId);
-            DB.payments.push({ stuId, name: student.name, count: cnt, status: 'pending', date: new Date().toLocaleDateString() });
-            saveData();
-            sendRealtimeNotification('To\'lov kerak!', `${student.name} 14 ta darsga keldi. To'lov qilishi kerak!`, 'warning');
-            toast(`⚠️ ${student.name} to'lov kerak!`, 'warning');
-        }
-    }
-    
-    loadView('attendance');
-}
-
-function confirmPayment(stuId) {
-    const pay = DB.payments.find(p => p.stuId === stuId && p.status === 'pending');
-    if (pay) {
-        pay.status = 'paid';
-        saveData();
-        sendRealtimeNotification('To\'lov tasdiqlandi', `${pay.name} to'lovi qabul qilindi`, 'success');
-        toast(`${pay.name} to'lovi tasdiqlandi`, 'success');
-        loadView('payments');
-        if (CU?.role === 'dasturchi') loadView('payments');
-    }
-}
-
-// ============ AUTO-SAVE & INIT ============
-setInterval(() => { if (DB) saveData(); }, 30000);
+// Auto-save har 10 sekundda
+setInterval(() => { if (DB) saveData(); }, 10000);
 </script>
 </body>
 </html>
