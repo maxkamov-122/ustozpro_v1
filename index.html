@@ -102,6 +102,7 @@ body {
 .rb-menejer { background:rgba(99,102,241,0.25); color:#a5b4fc; border:1px solid rgba(99,102,241,0.4); }
 .rb-oqutuvchi { background:rgba(245,158,11,0.2); color:#fcd34d; border:1px solid rgba(245,158,11,0.3); }
 .rb-oquvchi { background:rgba(16,185,129,0.2); color:#6ee7b7; border:1px solid rgba(16,185,129,0.3); }
+.rb-otaona { background:rgba(6,182,212,0.2); color:#67e8f9; border:1px solid rgba(6,182,212,0.3); }
 .btn-exit { padding:7px 14px; border-radius:var(--r3); border:1px solid var(--border); background:rgba(239,68,68,0.1); color:#f87171; font-size:12px; font-weight:600; cursor:pointer; transition:all 0.2s; white-space:nowrap; }
 .btn-exit:hover { background:rgba(239,68,68,0.25); border-color:rgba(239,68,68,0.4); }
 .content { flex:1; padding:16px; overflow-y:auto; }
@@ -279,6 +280,28 @@ tbody tr:hover td { background:rgba(255,255,255,0.03); }
 .conn-dot { width:6px; height:6px; border-radius:50%; background:#475569; }
 .conn-dot.online { background:#10b981; animation:pulse 2s infinite; }
 .conn-dot.offline { background:#ef4444; }
+
+/* ─── SCHEDULE TABLE ─── */
+.sch-grid { display:grid; gap:6px; }
+.sch-row { display:flex; align-items:center; gap:10px; padding:10px 14px; background:rgba(0,0,0,0.25); border:1px solid var(--border); border-radius:10px; }
+.sch-day { font-size:11px; font-weight:700; color:var(--c3); min-width:80px; }
+.sch-time { font-size:12px; color:var(--text2); min-width:110px; font-family:'JetBrains Mono',monospace; }
+.sch-sub { font-size:13px; font-weight:600; color:var(--text); flex:1; }
+.sch-room { font-size:11px; color:var(--text3); }
+/* ─── INQUIRY CARD ─── */
+.inq-card { padding:14px 16px; background:rgba(0,0,0,0.25); border:1px solid var(--border); border-radius:14px; margin-bottom:8px; }
+.inq-name { font-size:14px; font-weight:700; color:var(--text); }
+.inq-meta { font-size:12px; color:var(--text2); margin-top:3px; }
+.inq-actions { display:flex; gap:6px; margin-top:10px; flex-wrap:wrap; }
+.b-blue { background:rgba(59,130,246,0.15); color:#93c5fd; border:1px solid rgba(59,130,246,0.25); }
+/* ─── INCOME ─── */
+.income-row { display:flex; align-items:center; gap:12px; padding:12px 14px; background:rgba(0,0,0,0.25); border:1px solid var(--border); border-radius:12px; margin-bottom:8px; }
+.income-amount { font-size:18px; font-weight:800; color:#34d399; font-family:'JetBrains Mono',monospace; }
+.income-info { flex:1; }
+.income-name { font-size:13px; font-weight:600; color:var(--text); }
+.income-meta { font-size:11px; color:var(--text2); margin-top:2px; }
+/* ─── PARENT CABINET ─── */
+.parent-stu-card { padding:16px; background:rgba(99,102,241,0.08); border:1px solid rgba(99,102,241,0.2); border-radius:16px; margin-bottom:12px; }
 </style>
 </head>
 <body>
@@ -311,6 +334,7 @@ tbody tr:hover td { background:rgba(255,255,255,0.03); }
         <button class="role-tab" onclick="setRole('menejer')">Menejer</button>
         <button class="role-tab" onclick="setRole('oqutuvchi')">Ustoz</button>
         <button class="role-tab" onclick="setRole('oquvchi')">O'quvchi</button>
+        <button class="role-tab" onclick="setRole('otaona')">Ota-ona</button>
       </div>
       <div class="field">
         <label>Login</label>
@@ -410,19 +434,97 @@ tbody tr:hover td { background:rgba(255,255,255,0.03); }
       </div>
     </div>
 
-    <div id="view-a-sozlamalar" class="view">
-      <div class="card glass">
-        <div class="card-hd"><div class="card-title">Sozlamalar</div></div>
-        <div class="fg" style="gap:14px;">
-          <div class="fgroup"><div class="finput-label">To'lov trigger (dars soni)</div><input class="finput" id="cfg-trigger" type="number" value="14"></div>
-          <div class="fgroup"><div class="finput-label">Platforma nomi</div><input class="finput" id="cfg-name" value="USTOZPRO"></div>
-          <div class="fgroup"><div class="finput-label">Xabar shabloni</div><textarea class="finput" id="cfg-msg" style="resize:vertical;min-height:80px;">{ism} — {count} ta darsga keldi. To'lov qilishi kerak!</textarea></div>
-          <button class="btn btn-gold btn-sm" style="width:fit-content" onclick="saveSettings()">Saqlash ✓</button>
+    <!-- ADMIN: Fanlar, Xonalar, Vaqtlar, Bayramlar -->
+    <div id="view-a-sozlash" class="view">
+      <div class="nav-scroll" style="margin-bottom:14px;" id="settingsSubTabs">
+        <button class="ntab active" onclick="switchSettingsTab('fanlar',this)">📚 Fanlar</button>
+        <button class="ntab" onclick="switchSettingsTab('xonalar',this)">🏫 Xonalar</button>
+        <button class="ntab" onclick="switchSettingsTab('vaqtlar',this)">⏰ Vaqtlar</button>
+        <button class="ntab" onclick="switchSettingsTab('bayramlar',this)">🎉 Bayramlar</button>
+        <button class="ntab" onclick="switchSettingsTab('config',this)">⚙️ Config</button>
+      </div>
+
+      <!-- Fanlar -->
+      <div id="settings-fanlar" class="view active">
+        <div class="card glass">
+          <div class="card-hd"><div class="card-title">📚 Fanlar</div><button class="btn btn-sm btn-primary" onclick="toggleForm('addSubjectForm')">+ Qo'shish</button></div>
+          <div id="addSubjectForm" class="add-form">
+            <div style="padding-top:16px;border-top:1px solid var(--border);margin-top:0;">
+              <div class="fgroup" style="margin-bottom:10px;"><div class="finput-label">Fan nomi</div><input class="finput" id="sub-name" placeholder="Matematika"></div>
+              <div class="fgroup" style="margin-bottom:12px;"><div class="finput-label">Tavsif</div><input class="finput" id="sub-desc" placeholder="Ixtiyoriy"></div>
+              <div style="display:flex;gap:8px;"><button class="btn btn-primary btn-sm" onclick="addSubject()">Saqlash</button><button class="btn btn-sm btn-outline" onclick="toggleForm('addSubjectForm')">Bekor</button></div>
+            </div>
+          </div>
+          <div id="subjectList" style="margin-top:12px;"></div>
         </div>
       </div>
-      <div class="card glass">
-        <div class="card-hd"><div class="card-title">Parolni o'zgartirish</div></div>
-        <div id="changePassSection"></div>
+
+      <!-- Xonalar -->
+      <div id="settings-xonalar" class="view">
+        <div class="card glass">
+          <div class="card-hd"><div class="card-title">🏫 Xonalar</div><button class="btn btn-sm btn-primary" onclick="toggleForm('addRoomForm')">+ Qo'shish</button></div>
+          <div id="addRoomForm" class="add-form">
+            <div style="padding-top:16px;border-top:1px solid var(--border);margin-top:0;">
+              <div class="fg fg2" style="margin-bottom:10px;">
+                <div class="fgroup"><div class="finput-label">Xona nomi</div><input class="finput" id="room-name" placeholder="1-xona"></div>
+                <div class="fgroup"><div class="finput-label">Sig'imi</div><input class="finput" type="number" id="room-cap" placeholder="20"></div>
+              </div>
+              <div style="display:flex;gap:8px;"><button class="btn btn-primary btn-sm" onclick="addRoom()">Saqlash</button><button class="btn btn-sm btn-outline" onclick="toggleForm('addRoomForm')">Bekor</button></div>
+            </div>
+          </div>
+          <div id="roomList" style="margin-top:12px;"></div>
+        </div>
+      </div>
+
+      <!-- Vaqtlar -->
+      <div id="settings-vaqtlar" class="view">
+        <div class="card glass">
+          <div class="card-hd"><div class="card-title">⏰ Dars vaqtlari</div><button class="btn btn-sm btn-primary" onclick="toggleForm('addTimeForm')">+ Qo'shish</button></div>
+          <div id="addTimeForm" class="add-form">
+            <div style="padding-top:16px;border-top:1px solid var(--border);margin-top:0;">
+              <div class="fg fg2" style="margin-bottom:10px;">
+                <div class="fgroup"><div class="finput-label">Boshlanish</div><input class="finput" type="time" id="time-start"></div>
+                <div class="fgroup"><div class="finput-label">Tugash</div><input class="finput" type="time" id="time-end"></div>
+              </div>
+              <div style="display:flex;gap:8px;"><button class="btn btn-primary btn-sm" onclick="addLessonTime()">Saqlash</button><button class="btn btn-sm btn-outline" onclick="toggleForm('addTimeForm')">Bekor</button></div>
+            </div>
+          </div>
+          <div id="timeList" style="margin-top:12px;"></div>
+        </div>
+      </div>
+
+      <!-- Bayramlar -->
+      <div id="settings-bayramlar" class="view">
+        <div class="card glass">
+          <div class="card-hd"><div class="card-title">🎉 Bayram kunlari</div><button class="btn btn-sm btn-primary" onclick="toggleForm('addHolidayForm')">+ Qo'shish</button></div>
+          <div id="addHolidayForm" class="add-form">
+            <div style="padding-top:16px;border-top:1px solid var(--border);margin-top:0;">
+              <div class="fg fg2" style="margin-bottom:10px;">
+                <div class="fgroup"><div class="finput-label">Bayram nomi</div><input class="finput" id="hol-name" placeholder="Navro'z"></div>
+                <div class="fgroup"><div class="finput-label">Sana</div><input class="finput" type="date" id="hol-date"></div>
+              </div>
+              <div style="display:flex;gap:8px;"><button class="btn btn-primary btn-sm" onclick="addHoliday()">Saqlash</button><button class="btn btn-sm btn-outline" onclick="toggleForm('addHolidayForm')">Bekor</button></div>
+            </div>
+          </div>
+          <div id="holidayList" style="margin-top:12px;"></div>
+        </div>
+      </div>
+
+      <!-- Config -->
+      <div id="settings-config" class="view">
+        <div class="card glass">
+          <div class="card-hd"><div class="card-title">⚙️ Sozlamalar</div></div>
+          <div class="fg" style="gap:14px;">
+            <div class="fgroup"><div class="finput-label">To'lov trigger (dars soni)</div><input class="finput" id="cfg-trigger" type="number" value="14"></div>
+            <div class="fgroup"><div class="finput-label">Platforma nomi</div><input class="finput" id="cfg-name" value="USTOZPRO"></div>
+            <div class="fgroup"><div class="finput-label">Xabar shabloni</div><textarea class="finput" id="cfg-msg" style="resize:vertical;min-height:80px;">{ism} — {count} ta darsga keldi. To'lov qilishi kerak!</textarea></div>
+            <button class="btn btn-gold btn-sm" style="width:fit-content" onclick="saveSettings()">Saqlash ✓</button>
+          </div>
+        </div>
+        <div class="card glass" style="margin-top:14px;">
+          <div class="card-hd"><div class="card-title">Parolni o'zgartirish</div></div>
+          <div id="changePassSection"></div>
+        </div>
       </div>
     </div>
 
@@ -467,7 +569,10 @@ tbody tr:hover td { background:rgba(255,255,255,0.03); }
               <div class="fgroup"><div class="finput-label">Parol</div><input class="finput" type="password" id="t-pass" placeholder="••••••"></div>
               <div class="fgroup"><div class="finput-label">Fan</div><input class="finput" id="t-sub" placeholder="Matematika"></div>
             </div>
-            <div class="fgroup" style="margin-bottom:12px;"><div class="finput-label">Telegram ID</div><input class="finput" id="t-tgid" placeholder="123456789"></div>
+            <div class="fg fg2" style="margin-bottom:12px;">
+              <div class="fgroup"><div class="finput-label">Telegram ID</div><input class="finput" id="t-tgid" placeholder="123456789"></div>
+              <div class="fgroup"><div class="finput-label">Telefon</div><input class="finput" id="t-phone" placeholder="+998901234567"></div>
+            </div>
             <div style="display:flex;gap:8px;">
               <button class="btn btn-primary btn-sm" onclick="addTeacher()">Saqlash</button>
               <button class="btn btn-sm btn-outline" onclick="toggleForm('addTchForm')">Bekor</button>
@@ -483,6 +588,7 @@ tbody tr:hover td { background:rgba(255,255,255,0.03); }
       </div>
     </div>
 
+    <!-- MENEJER: O'quvchilar (to'liq ma'lumot) -->
     <div id="view-m-oquvchilar" class="view">
       <div class="card glass">
         <div class="card-hd">
@@ -493,11 +599,19 @@ tbody tr:hover td { background:rgba(255,255,255,0.03); }
           <div style="padding-top:16px;border-top:1px solid var(--border);margin-top:0;">
             <div class="fg fg2" style="margin-bottom:10px;">
               <div class="fgroup"><div class="finput-label">Ism familiya</div><input class="finput" id="s-name" placeholder="Karimov Bobur"></div>
-              <div class="fgroup"><div class="finput-label">Login</div><input class="finput" id="s-login" placeholder="bobur123"></div>
+              <div class="fgroup"><div class="finput-label">Telefon</div><input class="finput" id="s-phone" placeholder="+998901234567"></div>
             </div>
             <div class="fg fg2" style="margin-bottom:10px;">
+              <div class="fgroup"><div class="finput-label">Ota-ona ismi</div><input class="finput" id="s-parent-name" placeholder="Karimov Alisher"></div>
+              <div class="fgroup"><div class="finput-label">Ota-ona telefon</div><input class="finput" id="s-parent-phone" placeholder="+998901234567"></div>
+            </div>
+            <div class="fg fg2" style="margin-bottom:10px;">
+              <div class="fgroup"><div class="finput-label">Login</div><input class="finput" id="s-login" placeholder="bobur123"></div>
               <div class="fgroup"><div class="finput-label">Parol</div><input class="finput" type="password" id="s-pass" placeholder="••••••"></div>
+            </div>
+            <div class="fg fg2" style="margin-bottom:10px;">
               <div class="fgroup"><div class="finput-label">Telegram ID</div><input class="finput" id="s-tgid" placeholder="123456789"></div>
+              <div class="fgroup"><div class="finput-label">O'qiydigan fanlar</div><input class="finput" id="s-subjects" placeholder="Matematika, Ingliz tili"></div>
             </div>
             <div class="fgroup" style="margin-bottom:12px;"><div class="finput-label">O'qituvchi</div>
               <select class="finput" id="s-tch"><option value="">Tanlang</option></select>
@@ -510,9 +624,102 @@ tbody tr:hover td { background:rgba(255,255,255,0.03); }
         </div>
         <div class="table-wrap" style="margin-top:12px;">
           <table>
-            <thead><tr><th>Ism</th><th>O'qituvchi</th><th>Davomat</th><th>Status</th><th>Parol</th><th></th></tr></thead>
+            <thead><tr><th>Ism</th><th>Telefon</th><th>O'qituvchi</th><th>Fanlar</th><th>Davomat</th><th>Status</th><th></th></tr></thead>
             <tbody id="stuTable"></tbody>
           </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- MENEJER: Jadval tayinlash -->
+    <div id="view-m-jadval" class="view">
+      <div class="card glass">
+        <div class="card-hd">
+          <div><div class="card-title">📅 Dars jadvali tayinlash</div></div>
+          <button class="btn btn-sm btn-primary" onclick="toggleForm('addSchForm')">+ Qo'shish</button>
+        </div>
+        <div id="addSchForm" class="add-form">
+          <div style="padding-top:16px;border-top:1px solid var(--border);margin-top:0;">
+            <div class="fg fg2" style="margin-bottom:10px;">
+              <div class="fgroup"><div class="finput-label">O'qituvchi</div><select class="finput" id="sch-teacher"><option value="">Tanlang</option></select></div>
+              <div class="fgroup"><div class="finput-label">Hafta kuni</div>
+                <select class="finput" id="sch-day">
+                  <option value="1">Dushanba</option><option value="2">Seshanba</option>
+                  <option value="3">Chorshanba</option><option value="4">Payshanba</option>
+                  <option value="5">Juma</option><option value="6">Shanba</option><option value="7">Yakshanba</option>
+                </select>
+              </div>
+            </div>
+            <div class="fg fg2" style="margin-bottom:10px;">
+              <div class="fgroup"><div class="finput-label">Xona</div><select class="finput" id="sch-room"><option value="">Tanlang</option></select></div>
+              <div class="fgroup"><div class="finput-label">Vaqt</div><select class="finput" id="sch-time"><option value="">Tanlang</option></select></div>
+            </div>
+            <div class="fgroup" style="margin-bottom:12px;"><div class="finput-label">Fan nomi</div><input class="finput" id="sch-subject" placeholder="Matematika"></div>
+            <div style="display:flex;gap:8px;"><button class="btn btn-primary btn-sm" onclick="addSchedule()">Saqlash</button><button class="btn btn-sm btn-outline" onclick="toggleForm('addSchForm')">Bekor</button></div>
+          </div>
+        </div>
+        <div id="scheduleList" style="margin-top:12px;"></div>
+      </div>
+    </div>
+
+    <!-- MENEJER: Murojaatlar -->
+    <div id="view-m-murojaatlar" class="view">
+      <div class="card glass">
+        <div class="card-hd">
+          <div><div class="card-title">📞 Murojaatlar</div></div>
+          <button class="btn btn-sm btn-primary" onclick="toggleForm('addInqForm')">+ Yangi</button>
+        </div>
+        <div id="addInqForm" class="add-form">
+          <div style="padding-top:16px;border-top:1px solid var(--border);margin-top:0;">
+            <div class="fg fg2" style="margin-bottom:10px;">
+              <div class="fgroup"><div class="finput-label">Ism</div><input class="finput" id="inq-name" placeholder="Karimov Bobur"></div>
+              <div class="fgroup"><div class="finput-label">Telefon</div><input class="finput" id="inq-phone" placeholder="+998..."></div>
+            </div>
+            <div class="fg fg2" style="margin-bottom:10px;">
+              <div class="fgroup"><div class="finput-label">Qiziquvchi fan</div><input class="finput" id="inq-subject" placeholder="Matematika"></div>
+              <div class="fgroup"><div class="finput-label">Holat</div>
+                <select class="finput" id="inq-status">
+                  <option value="new">Yangi</option><option value="contacted">Bog'lanildi</option>
+                  <option value="enrolled">Yozildi</option><option value="closed">Yopildi</option>
+                </select>
+              </div>
+            </div>
+            <div class="fgroup" style="margin-bottom:12px;"><div class="finput-label">Izoh</div><textarea class="finput" id="inq-msg" style="resize:vertical;min-height:60px;" placeholder="Qo'shimcha ma'lumot..."></textarea></div>
+            <div style="display:flex;gap:8px;"><button class="btn btn-primary btn-sm" onclick="addInquiry()">Saqlash</button><button class="btn btn-sm btn-outline" onclick="toggleForm('addInqForm')">Bekor</button></div>
+          </div>
+        </div>
+        <div id="inquiryList" style="margin-top:12px;"></div>
+      </div>
+    </div>
+
+    <!-- MENEJER: Kirim -->
+    <div id="view-m-kirim" class="view">
+      <div class="card glass">
+        <div class="card-hd">
+          <div><div class="card-title">💰 Kirim qayd etish</div></div>
+          <button class="btn btn-sm btn-primary" onclick="toggleForm('addIncomeForm')">+ To'lov qabul</button>
+        </div>
+        <div id="addIncomeForm" class="add-form">
+          <div style="padding-top:16px;border-top:1px solid var(--border);margin-top:0;">
+            <div class="fg fg2" style="margin-bottom:10px;">
+              <div class="fgroup"><div class="finput-label">O'quvchi</div><select class="finput" id="inc-stu"><option value="">Tanlang</option></select></div>
+              <div class="fgroup"><div class="finput-label">Miqdor (so'm)</div><input class="finput" type="number" id="inc-amount" placeholder="500000"></div>
+            </div>
+            <div class="fg fg2" style="margin-bottom:12px;">
+              <div class="fgroup"><div class="finput-label">To'lov turi</div>
+                <select class="finput" id="inc-method">
+                  <option value="naqd">Naqd pul</option><option value="karta">Bank kartasi</option><option value="transfer">Bank o'tkazma</option>
+                </select>
+              </div>
+              <div class="fgroup"><div class="finput-label">Izoh</div><input class="finput" id="inc-note" placeholder="Ixtiyoriy"></div>
+            </div>
+            <div style="display:flex;gap:8px;"><button class="btn btn-primary btn-sm" onclick="addIncome()">Qayd etish</button><button class="btn btn-sm btn-outline" onclick="toggleForm('addIncomeForm')">Bekor</button></div>
+          </div>
+        </div>
+        <div id="incomeList" style="margin-top:12px;"></div>
+        <div id="incomeTotalBox" style="margin-top:12px;padding:14px 16px;background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.2);border-radius:12px;display:none;">
+          <div style="font-size:12px;color:var(--text2);">Jami kirim</div>
+          <div class="income-amount" id="incomeTotal">0 so'm</div>
         </div>
       </div>
     </div>
@@ -540,10 +747,18 @@ tbody tr:hover td { background:rgba(255,255,255,0.03); }
         <div class="card-hd"><div class="card-title">Jurnal</div></div>
         <div class="table-wrap">
           <table>
-            <thead><tr><th>O'quvchi</th><th>Keldi</th><th>Progress</th><th>Status</th></tr></thead>
+            <thead><tr><th>O'quvchi</th><th>Tel</th><th>Keldi</th><th>Progress</th><th>Status</th></tr></thead>
             <tbody id="jurnalBody"></tbody>
           </table>
         </div>
+      </div>
+    </div>
+
+    <!-- O'QITUVCHI: Jadval -->
+    <div id="view-t-jadval" class="view">
+      <div class="card glass">
+        <div class="card-hd"><div class="card-title">📅 Mening jadvalim</div></div>
+        <div id="tchScheduleList"></div>
       </div>
     </div>
 
@@ -578,6 +793,14 @@ tbody tr:hover td { background:rgba(255,255,255,0.03); }
       </div>
     </div>
 
+    <!-- O'QUVCHI: Jadval -->
+    <div id="view-s-jadval" class="view">
+      <div class="card glass">
+        <div class="card-hd"><div class="card-title">📅 Dars jadvalim</div></div>
+        <div id="stuScheduleList"></div>
+      </div>
+    </div>
+
     <div id="view-s-tolov" class="view">
       <div class="card glass">
         <div class="card-hd"><div class="card-title">To'lov holati</div></div>
@@ -589,6 +812,28 @@ tbody tr:hover td { background:rgba(255,255,255,0.03); }
       <div class="card glass">
         <div class="card-hd"><div class="card-title">Profilim</div></div>
         <div id="stuProfileInfo"></div>
+      </div>
+    </div>
+
+    <!-- ═══ OTA-ONA CABINET ═══ -->
+    <div id="view-oo-bosh" class="view">
+      <div class="card glass">
+        <div class="card-hd"><div class="card-title">👨‍👩‍👧 Farzandlarim</div></div>
+        <div id="parentChildrenList"></div>
+      </div>
+    </div>
+
+    <div id="view-oo-davomat" class="view">
+      <div class="card glass">
+        <div class="card-hd"><div class="card-title">📅 Davomat</div></div>
+        <div id="parentAttList"></div>
+      </div>
+    </div>
+
+    <div id="view-oo-tolov" class="view">
+      <div class="card glass">
+        <div class="card-hd"><div class="card-title">💳 To'lov holati</div></div>
+        <div id="parentPayList"></div>
       </div>
     </div>
 
@@ -636,19 +881,24 @@ tbody tr:hover td { background:rgba(255,255,255,0.03); }
   </div>
 </div>
 
+<!-- STUDENT DETAIL MODAL -->
+<div class="modal-overlay" id="stuDetailModal">
+  <div class="modal" style="max-width:460px;">
+    <div class="modal-title">👤 O'quvchi ma'lumotlari</div>
+    <div id="stuDetailContent"></div>
+    <div class="modal-actions">
+      <button class="btn btn-sm btn-outline" onclick="closeModal('stuDetailModal')">Yopish</button>
+    </div>
+  </div>
+</div>
+
 <!-- TOAST -->
 <div class="toast-wrap" id="toastWrap"></div>
 
 <script>
-/* ══════════════════════════════════════════
-   USTOZPRO — Supabase + Ably Real-time
-   API kalitlar to'g'ridan-to'g'ri kodga biriktirilgan
-   ══════════════════════════════════════════ */
-
 const tg = window.Telegram?.WebApp;
 if(tg){tg.expand();tg.ready();}
 
-/* ─── API KALITLAR (TO'G'RIDAN-TO'G'RI) ─── */
 const SUPABASE_URL = 'https://tiihgvitvqhpfcidyvpd.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_Puwwixj3obuxB0xdqE_9Ww_Had9CX5I';
 const ABLY_API_KEY = 'GSQZcQ.qw01Ow:t1CiUe_16VfC_B4L56oe5BT3tGuwvT6WkbxTDZ5dsSk';
@@ -661,17 +911,14 @@ let CU = null;
 let CFG = { trigger:14, name:'USTOZPRO', msgTemplate:"{ism} — {count} ta darsga keldi. To'lov qilishi kerak!" };
 const TODAY = new Date().toDateString();
 const DATES = ['Apr 1','Apr 2','Apr 3','Apr 4','Apr 5','Apr 7','Apr 8','Apr 9','Apr 10','Apr 11','Apr 12','Apr 13','Apr 14','Apr 15','Apr 16','Apr 17'];
+const DAYS = ['','Dushanba','Seshanba','Chorshanba','Payshanba','Juma','Shanba','Yakshanba'];
 
-/* ─── INIT ─── */
-window.addEventListener('DOMContentLoaded', () => {
-  initApp();
-});
+window.addEventListener('DOMContentLoaded', () => { initApp(); });
 
 async function initApp(){
   showLoading('Supabase ga ulanmoqda...');
   try {
     SB = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    // Test connection
     const { error } = await SB.from('users').select('id').limit(1);
     if(error && error.code !== 'PGRST116') throw error;
     setLoadText('Ably ga ulanmoqda...');
@@ -687,7 +934,6 @@ async function initApp(){
 }
 
 async function ensureTables(){
-  // Load config
   const { data } = await SB.from('config').select('*').eq('key','trigger').single();
   if(data) CFG.trigger = parseInt(data.value)||14;
 }
@@ -717,12 +963,12 @@ function setLoadText(t){ document.getElementById('loadText').textContent = t; }
 let selectedRole = 'menejer';
 function setRole(r){
   selectedRole = r;
-  document.querySelectorAll('.role-tab').forEach((t,i)=>t.classList.toggle('active',['admin','menejer','oqutuvchi','oquvchi'][i]===r));
+  document.querySelectorAll('.role-tab').forEach((t,i)=>t.classList.toggle('active',['admin','menejer','oqutuvchi','oquvchi','otaona'][i]===r));
 }
 
 function showLogin(){
   document.getElementById('loginScreen').classList.add('active');
-  document.querySelectorAll('.role-tab')[1].classList.add('active');
+  setRole('menejer');
 }
 
 async function doLogin(){
@@ -731,17 +977,23 @@ async function doLogin(){
   if(!l||!p){ toast("Login va parol kiriting",'warn'); return; }
   showLoading('Tekshirilmoqda...');
   try {
-    const { data, error } = await SB.from('users').select('*').eq('login',l).eq('pass',p).eq('role',selectedRole).single();
+    // Faqat login+pass tekshiramiz, role DB dan o'qiladi
+    const { data, error } = await SB.from('users').select('*').eq('login',l).eq('pass',p).maybeSingle();
     hideLoading();
-    if(error||!data){ toast("Login yoki parol noto'g'ri",'error'); return; }
+    if(error){ toast('DB xato: '+error.message,'error'); return; }
+    if(!data){ toast("Login yoki parol noto'g'ri",'error'); return; }
+    // Tanlangan tab bilan rolni solishtirish (faqat ogohlantirish)
+    if(data.role !== selectedRole){
+      toast("Diqqat: siz "+data.role+" sifatida kiryapsiz",'info');
+    }
     CU = data;
     addLog('Login', CU.name+' tizimga kirdi', 'info');
     document.getElementById('loginScreen').classList.remove('active');
     document.getElementById('appScreen').classList.add('active');
     document.getElementById('tbName').textContent = CU.name;
     const rb = document.getElementById('tbRole');
-    const labels = {admin:'Admin',menejer:'Menejer',oqutuvchi:"O'qituvchi",oquvchi:"O'quvchi"};
-    rb.textContent = labels[CU.role];
+    const labels = {admin:'Admin',menejer:'Menejer',oqutuvchi:"O'qituvchi",oquvchi:"O'quvchi",otaona:"Ota-ona"};
+    rb.textContent = labels[CU.role]||CU.role;
     rb.className = 'role-badge rb-'+CU.role;
     setConnStatus(ablyClient?.connection.state==='connected');
     buildNav();
@@ -765,7 +1017,7 @@ const NAV = {
     {id:'a-bosh',label:'🏠 Bosh'},
     {id:'a-foydalanuvchilar',label:'👥 Foydalanuvchilar'},
     {id:'a-tolov',label:"💳 To'lovlar"},
-    {id:'a-sozlamalar',label:'⚙️ Sozlamalar'},
+    {id:'a-sozlash',label:'⚙️ Sozlash'},
     {id:'a-log',label:'📋 Log'},
     {id:'chat',label:'💬 Chat'},
   ],
@@ -773,20 +1025,31 @@ const NAV = {
     {id:'m-bosh',label:'🏠 Bosh'},
     {id:'m-oqutuvchilar',label:"👨‍🏫 O'qituvchilar"},
     {id:'m-oquvchilar',label:"🎓 O'quvchilar"},
+    {id:'m-jadval',label:'📅 Jadval'},
+    {id:'m-murojaatlar',label:'📞 Murojaatlar'},
+    {id:'m-kirim',label:'💰 Kirim'},
     {id:'m-parol',label:'🔑 Parollar'},
     {id:'chat',label:'💬 Chat'},
   ],
   oqutuvchi:[
     {id:'t-davomat',label:'✅ Davomat'},
     {id:'t-jurnal',label:'📊 Jurnal'},
+    {id:'t-jadval',label:'📅 Jadvalim'},
     {id:'t-tolov',label:"💳 To'lov"},
     {id:'t-profil',label:'👤 Profil'},
     {id:'chat',label:'💬 Chat'},
   ],
   oquvchi:[
     {id:'s-davomat',label:'📅 Davomatim'},
+    {id:'s-jadval',label:'📅 Jadvalim'},
     {id:'s-tolov',label:"💳 To'lov"},
     {id:'s-profil',label:'👤 Profil'},
+    {id:'chat',label:'💬 Chat'},
+  ],
+  otaona:[
+    {id:'oo-bosh',label:'👨‍👩‍👧 Farzandlar'},
+    {id:'oo-davomat',label:'📅 Davomat'},
+    {id:'oo-tolov',label:"💳 To'lov"},
     {id:'chat',label:'💬 Chat'},
   ],
 };
@@ -815,19 +1078,27 @@ function loadView(id){
   if(id==='a-bosh') loadAdminBosh();
   else if(id==='a-foydalanuvchilar') loadAdminUsers();
   else if(id==='a-tolov') loadAdminPay();
-  else if(id==='a-sozlamalar') loadAdminSettings();
+  else if(id==='a-sozlash') loadAdminSozlash();
   else if(id==='a-log') loadLog();
   else if(id==='m-bosh') loadMBosh();
   else if(id==='m-oqutuvchilar') loadTchTable();
   else if(id==='m-oquvchilar') loadStuTable();
+  else if(id==='m-jadval') loadScheduleManager();
+  else if(id==='m-murojaatlar') loadInquiries();
+  else if(id==='m-kirim') loadIncome();
   else if(id==='m-parol') loadMPass();
   else if(id==='t-davomat') loadMarkView();
   else if(id==='t-jurnal') loadJurnal();
+  else if(id==='t-jadval') loadTchSchedule();
   else if(id==='t-tolov') loadTchPay();
   else if(id==='t-profil') loadTchProfile();
   else if(id==='s-davomat') loadStuAtt();
+  else if(id==='s-jadval') loadStuSchedule();
   else if(id==='s-tolov') loadStuPay();
   else if(id==='s-profil') loadStuProfile();
+  else if(id==='oo-bosh') loadParentBosh();
+  else if(id==='oo-davomat') loadParentAtt();
+  else if(id==='oo-tolov') loadParentPay();
   else if(id==='chat') initChatView();
 }
 
@@ -837,11 +1108,16 @@ async function getTch(){ const { data }=await SB.from('users').select('*').eq('r
 async function getStu(){ const { data }=await SB.from('users').select('*').eq('role','oquvchi'); return data||[]; }
 async function getMyStudents(tchId){ const { data }=await SB.from('users').select('*').eq('role','oquvchi').eq('teacher_id',tchId); return data||[]; }
 async function getAttendance(stuId){ const { data }=await SB.from('attendance').select('*').eq('stu_id',stuId).order('date',{ascending:false}); return data||[]; }
+async function getRooms(){ const {data}=await SB.from('rooms').select('*').order('id'); return data||[]; }
+async function getTimes(){ const {data}=await SB.from('lesson_times').select('*').order('start_time'); return data||[]; }
+async function getSubjectsDB(){ const {data}=await SB.from('subjects').select('*').order('name'); return data||[]; }
 function initials(name){ return name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase(); }
 function avColors(i){ return ['av-indigo','av-cyan','av-amber'][i%3]; }
 function pbar(pct){ const cls=pct>=80?'pf-green':pct>=50?'pf-amber':'pf-red'; return `<div class="pbar"><div class="pfill ${cls}" style="width:${pct}%"></div></div><span style="font-size:11px;color:var(--text2)">${pct}%</span>`; }
-function roleBadge(role){ const m={menejer:'<span class="badge b-indigo">Menejer</span>',oqutuvchi:'<span class="badge b-amber">O\'qituvchi</span>',oquvchi:'<span class="badge b-green">O\'quvchi</span>'}; return m[role]||role; }
+function roleBadge(role){ const m={menejer:'<span class="badge b-indigo">Menejer</span>',oqutuvchi:'<span class="badge b-amber">O\'qituvchi</span>',oquvchi:'<span class="badge b-green">O\'quvchi</span>',otaona:'<span class="badge b-blue">Ota-ona</span>'}; return m[role]||role; }
 function fmtTime(ts){ return new Date(ts).toLocaleTimeString('uz',{hour:'2-digit',minute:'2-digit'}); }
+function fmtDate(ts){ return new Date(ts).toLocaleDateString('uz'); }
+function numFmt(n){ return Number(n||0).toLocaleString('uz'); }
 
 async function addLog(action,detail,type){
   try{ await SB.from('logs').insert({action,detail,type,user_id:CU?.id,user_name:CU?.name}); }
@@ -862,6 +1138,26 @@ function toggleForm(id){
 }
 function openModal(id){ document.getElementById(id).classList.add('open'); }
 function closeModal(id){ document.getElementById(id).classList.remove('open'); }
+
+/* ─── SETTINGS SUB TABS ─── */
+function switchSettingsTab(name, btn){
+  document.querySelectorAll('#settingsSubTabs .ntab').forEach(x=>x.classList.remove('active'));
+  btn.classList.add('active');
+  ['fanlar','xonalar','vaqtlar','bayramlar','config'].forEach(t=>{
+    const el=document.getElementById('settings-'+t);
+    if(el) el.classList.toggle('active', t===name);
+  });
+  if(name==='fanlar') loadSubjects();
+  else if(name==='xonalar') loadRooms();
+  else if(name==='vaqtlar') loadTimes();
+  else if(name==='bayramlar') loadHolidays();
+  else if(name==='config') loadAdminSettings();
+}
+
+function loadAdminSozlash(){
+  document.getElementById('settings-fanlar').classList.add('active');
+  loadSubjects();
+}
 
 /* ─── ADMIN VIEWS ─── */
 async function loadAdminBosh(){
@@ -931,15 +1227,15 @@ async function deleteUser(id){
 }
 
 async function loadAdminPay(){
-  const {data:pays}=await SB.from('payments').select('*, users(name)').order('created_at',{ascending:false});
+  const {data:pays}=await SB.from('payments').select('*').order('created_at',{ascending:false});
   const list=document.getElementById('adminPayList');
   if(!pays?.length){ list.innerHTML='<div class="empty"><div class="empty-ico">💳</div>To\'lov yo\'q</div>'; return; }
   list.innerHTML=pays.map(p=>`
     <div class="pay-card">
       <div style="font-size:24px;">💳</div>
       <div class="pay-info">
-        <div class="pay-name">${p.users?.name||'—'}</div>
-        <div class="pay-meta">${p.count} ta dars • ${p.date||''}</div>
+        <div class="pay-name">${p.name||'—'}</div>
+        <div class="pay-meta">${p.count} ta dars • ${p.amount?numFmt(p.amount)+' so\'m':''} • ${p.date||''}</div>
       </div>
       <button class="pay-status-btn ${p.status==='paid'?'paid':''}" onclick="markPaid(${p.id})">
         ${p.status==='paid'?"To'landi ✓":"To'lov tasdiqlash"}
@@ -948,7 +1244,7 @@ async function loadAdminPay(){
 }
 
 async function markPaid(payId){
-  await SB.from('payments').update({status:'paid'}).eq('id',payId);
+  await SB.from('payments').update({status:'paid',paid_at:new Date().toISOString()}).eq('id',payId);
   addLog("To'lov","To'lov tasdiqlandi",'success');
   toast("To'lov tasdiqlandi ✓",'success');
   loadAdminPay();
@@ -1001,6 +1297,99 @@ async function saveSettings(){
   toast('Saqlandi ✓','success');
 }
 
+/* ─── FANLAR ─── */
+async function loadSubjects(){
+  const data=await getSubjectsDB();
+  document.getElementById('subjectList').innerHTML=data.length?data.map(s=>`
+    <div class="srow"><div class="sinfo"><div class="sname">📚 ${s.name}</div>${s.description?`<div class="smeta">${s.description}</div>`:''}</div>
+    <button class="btn-icon" onclick="deleteSubject(${s.id})">✕</button></div>`).join(''):'<div class="empty"><div class="empty-ico">📚</div>Fan qo\'shilmagan</div>';
+}
+
+async function addSubject(){
+  const name=document.getElementById('sub-name').value.trim();
+  if(!name){toast('Fan nomini kiriting','warn');return;}
+  const desc=document.getElementById('sub-desc').value.trim();
+  const {error}=await SB.from('subjects').insert({name,description:desc||null});
+  if(error){toast('Xato: '+error.message,'error');return;}
+  document.getElementById('sub-name').value='';document.getElementById('sub-desc').value='';
+  loadSubjects(); toast(name+' qo\'shildi ✓','success');
+}
+
+async function deleteSubject(id){
+  await SB.from('subjects').delete().eq('id',id);
+  loadSubjects(); toast("O'chirildi",'info');
+}
+
+/* ─── XONALAR ─── */
+async function loadRooms(){
+  const data=await getRooms();
+  document.getElementById('roomList').innerHTML=data.length?data.map(r=>`
+    <div class="srow"><div class="sinfo"><div class="sname">🏫 ${r.name}</div><div class="smeta">Sig'im: ${r.capacity} ta</div></div>
+    <button class="btn-icon" onclick="deleteRoom(${r.id})">✕</button></div>`).join(''):'<div class="empty"><div class="empty-ico">🏫</div>Xona qo\'shilmagan</div>';
+}
+
+async function addRoom(){
+  const name=document.getElementById('room-name').value.trim();
+  if(!name){toast('Xona nomini kiriting','warn');return;}
+  const cap=parseInt(document.getElementById('room-cap').value)||20;
+  const {error}=await SB.from('rooms').insert({name,capacity:cap});
+  if(error){toast('Xato: '+error.message,'error');return;}
+  document.getElementById('room-name').value='';document.getElementById('room-cap').value='';
+  loadRooms(); toast(name+' qo\'shildi ✓','success');
+}
+
+async function deleteRoom(id){
+  await SB.from('rooms').delete().eq('id',id);
+  loadRooms(); toast("O'chirildi",'info');
+}
+
+/* ─── VAQTLAR ─── */
+async function loadTimes(){
+  const data=await getTimes();
+  document.getElementById('timeList').innerHTML=data.length?data.map(t=>`
+    <div class="srow"><div class="sinfo"><div class="sname">⏰ ${t.label||t.start_time+' - '+t.end_time}</div></div>
+    <button class="btn-icon" onclick="deleteTime(${t.id})">✕</button></div>`).join(''):'<div class="empty"><div class="empty-ico">⏰</div>Vaqt qo\'shilmagan</div>';
+}
+
+async function addLessonTime(){
+  const s=document.getElementById('time-start').value;
+  const e=document.getElementById('time-end').value;
+  if(!s||!e){toast("Vaqt kiriting",'warn');return;}
+  const label=s+' - '+e;
+  const {error}=await SB.from('lesson_times').insert({label,start_time:s,end_time:e});
+  if(error){toast('Xato: '+error.message,'error');return;}
+  document.getElementById('time-start').value='';document.getElementById('time-end').value='';
+  loadTimes(); toast(label+' qo\'shildi ✓','success');
+}
+
+async function deleteTime(id){
+  await SB.from('lesson_times').delete().eq('id',id);
+  loadTimes(); toast("O'chirildi",'info');
+}
+
+/* ─── BAYRAMLAR ─── */
+async function loadHolidays(){
+  const {data}=await SB.from('holidays').select('*').order('date');
+  document.getElementById('holidayList').innerHTML=(data||[]).length?(data||[]).map(h=>`
+    <div class="srow"><div class="sinfo"><div class="sname">🎉 ${h.name}</div><div class="smeta">${h.date}</div></div>
+    <button class="btn-icon" onclick="deleteHoliday(${h.id})">✕</button></div>`).join(''):'<div class="empty"><div class="empty-ico">🎉</div>Bayram qo\'shilmagan</div>';
+}
+
+async function addHoliday(){
+  const name=document.getElementById('hol-name').value.trim();
+  const date=document.getElementById('hol-date').value;
+  if(!name||!date){toast("To'ldiring",'warn');return;}
+  const {error}=await SB.from('holidays').insert({name,date});
+  if(error){toast('Xato: '+error.message,'error');return;}
+  document.getElementById('hol-name').value='';document.getElementById('hol-date').value='';
+  loadHolidays(); toast(name+' qo\'shildi ✓','success');
+}
+
+async function deleteHoliday(id){
+  await SB.from('holidays').delete().eq('id',id);
+  loadHolidays(); toast("O'chirildi",'info');
+}
+
 /* ─── MENEJER VIEWS ─── */
 async function loadMBosh(){
   const tch=await getTch(); const stu=await getStu();
@@ -1013,11 +1402,11 @@ async function loadMBosh(){
   document.getElementById('m-pay-cnt').textContent=(pays||[]).length;
   document.getElementById('m-att-avg').textContent=attAvg+'%';
   const payEl=document.getElementById('mPayCards');
-  if(!(pays||[]).length){payEl.innerHTML='<div class="empty"><div class="empty-ico">✅</div>To\'lov kutilmaydi</div>';return;}
-  payEl.innerHTML=(pays||[]).slice(0,5).map(p=>`
+  if(!(pays||[]).length){payEl.innerHTML='<div class="empty"><div class="empty-ico">✅</div>To\'lov kutilmaydi</div>'; }
+  else payEl.innerHTML=(pays||[]).slice(0,5).map(p=>`
     <div class="pay-card">
       <div style="font-size:22px;">⚠️</div>
-      <div class="pay-info"><div class="pay-name">${p.name||'O\'quvchi'}</div><div class="pay-meta">${p.count} ta dars</div></div>
+      <div class="pay-info"><div class="pay-name">${p.name||'O\'quvchi'}</div><div class="pay-meta">${p.count} ta dars • ${p.amount?numFmt(p.amount)+' so\'m':''}</div></div>
       <span class="badge b-amber">Kutilmoqda</span>
     </div>`).join('');
   const {data:notifs}=await SB.from('notifications').select('*').order('created_at',{ascending:false}).limit(5);
@@ -1045,11 +1434,12 @@ async function addTeacher(){
   const pass=document.getElementById('t-pass').value.trim();
   const sub=document.getElementById('t-sub').value.trim();
   const tgId=document.getElementById('t-tgid').value.trim();
+  const phone=document.getElementById('t-phone').value.trim();
   if(!name||!login||!pass){toast("To'ldiring",'warn');return;}
-  const {error}=await SB.from('users').insert({name,login,pass,role:'oqutuvchi',subject:sub||'Fan',tg_id:tgId||null});
+  const {error}=await SB.from('users').insert({name,login,pass,role:'oqutuvchi',subject:sub||'Fan',tg_id:tgId||null,phone:phone||null});
   if(error){toast('Xato: '+error.message,'error');return;}
   toggleForm('addTchForm');
-  ['t-name','t-login','t-pass','t-sub','t-tgid'].forEach(x=>document.getElementById(x).value='');
+  ['t-name','t-login','t-pass','t-sub','t-tgid','t-phone'].forEach(x=>document.getElementById(x).value='');
   loadTchTable(); addLog("Qo'shish",name+' o\'qituvchi qo\'shildi','info');
   toast(name+' qo\'shildi ✓','success');
 }
@@ -1066,31 +1456,179 @@ async function loadStuTable(){
     const pct=Math.round(cnt/DATES.length*100);
     const hasPay=(pays||[]).find(p=>p.stu_id===s.id&&p.status==='pending');
     return `<tr>
-      <td class="td-bold">${s.name}</td>
+      <td class="td-bold" style="cursor:pointer;color:var(--c3);" onclick="showStuDetail(${s.id})">${s.name}</td>
+      <td style="font-size:12px;color:var(--text2)">${s.phone||'—'}</td>
       <td style="color:var(--text2)">${teacher?.name||'—'}</td>
+      <td style="font-size:11px;color:var(--text2)">${s.subjects||'—'}</td>
       <td>${pbar(pct)}</td>
       <td>${hasPay?'<span class="badge b-amber">⚠ To\'lov</span>':'<span class="badge b-green">Normal</span>'}</td>
-      <td style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text3)">${s.pass||'—'}</td>
       <td><button class="btn-icon" onclick="deleteUser(${s.id})">✕</button></td>
      </tr>`;
-  })).then(rows=>rows.join(''))||'<tr><td colspan="6" style="text-align:center;padding:20px;color:var(--text3)">O\'quvchi yo\'q</td></tr>';
+  })).then(rows=>rows.join(''))||'<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--text3)">O\'quvchi yo\'q</td></tr>';
+}
+
+async function showStuDetail(stuId){
+  const {data:s}=await SB.from('users').select('*').eq('id',stuId).single();
+  if(!s){toast("Topilmadi",'error');return;}
+  const tch=s.teacher_id?(await SB.from('users').select('name,subject').eq('id',s.teacher_id).single()).data:null;
+  const atts=await getAttendance(s.id);
+  const cnt=atts.filter(a=>a.came).length;
+  const pct=Math.round(cnt/Math.max(DATES.length,1)*100);
+  const {data:pays}=await SB.from('payments').select('*').eq('stu_id',s.id).order('created_at',{ascending:false});
+  document.getElementById('stuDetailContent').innerHTML=`
+    <div class="profile-card" style="margin-bottom:12px;">
+      <div class="profile-avatar">${initials(s.name)}</div>
+      <div class="profile-info"><div class="profile-name">${s.name}</div><div class="profile-meta">${s.login}</div></div>
+    </div>
+    <div style="display:grid;gap:8px;">
+      <div class="notif" style="border-left-color:var(--c3)"><div class="notif-icon">📞</div><div class="notif-body"><div class="notif-title">Telefon</div><div class="notif-desc">${s.phone||'—'}</div></div></div>
+      <div class="notif" style="border-left-color:var(--gold)"><div class="notif-icon">👨‍👩‍👧</div><div class="notif-body"><div class="notif-title">Ota-ona: ${s.parent_name||'—'}</div><div class="notif-desc">${s.parent_phone||'—'}</div></div></div>
+      <div class="notif"><div class="notif-icon">📚</div><div class="notif-body"><div class="notif-title">Fanlar</div><div class="notif-desc">${s.subjects||'—'}</div></div></div>
+      <div class="notif"><div class="notif-icon">👨‍🏫</div><div class="notif-body"><div class="notif-title">O'qituvchi</div><div class="notif-desc">${tch?.name||'—'} ${tch?.subject?'('+tch.subject+')':''}</div></div></div>
+      <div class="notif"><div class="notif-icon">📅</div><div class="notif-body"><div class="notif-title">Davomat</div><div class="notif-desc">${cnt} ta dars kelgan • ${pct?pct+'%':''}</div></div></div>
+      ${(pays||[]).length?`<div class="notif pay"><div class="notif-icon">💳</div><div class="notif-body"><div class="notif-title">So'nggi to'lov</div><div class="notif-desc">${pays[0].amount?numFmt(pays[0].amount)+' so\'m • ':''} ${pays[0].status==='paid'?'To\'landi ✓':'Kutilmoqda ⚠'}</div></div></div>`:''}
+    </div>`;
+  openModal('stuDetailModal');
 }
 
 async function addStudent(){
   const name=document.getElementById('s-name').value.trim();
+  const phone=document.getElementById('s-phone').value.trim();
+  const parentName=document.getElementById('s-parent-name').value.trim();
+  const parentPhone=document.getElementById('s-parent-phone').value.trim();
   const login=document.getElementById('s-login').value.trim();
   const pass=document.getElementById('s-pass').value.trim();
   const tgId=document.getElementById('s-tgid').value.trim();
+  const subjects=document.getElementById('s-subjects').value.trim();
   const tchId=document.getElementById('s-tch').value;
   if(!name||!login||!pass){toast("To'ldiring",'warn');return;}
-  const obj={name,login,pass,role:'oquvchi',tg_id:tgId||null};
+  const obj={name,login,pass,role:'oquvchi',tg_id:tgId||null,phone:phone||null,parent_name:parentName||null,parent_phone:parentPhone||null,subjects:subjects||null};
   if(tchId) obj.teacher_id=parseInt(tchId);
   const {error}=await SB.from('users').insert(obj);
   if(error){toast('Xato: '+error.message,'error');return;}
   toggleForm('addStuForm');
-  ['s-name','s-login','s-pass','s-tgid'].forEach(x=>document.getElementById(x).value='');
+  ['s-name','s-phone','s-parent-name','s-parent-phone','s-login','s-pass','s-tgid','s-subjects'].forEach(x=>document.getElementById(x).value='');
   loadStuTable(); addLog("Qo'shish",name+' o\'quvchi qo\'shildi','info');
   toast(name+' qo\'shildi ✓','success');
+}
+
+/* ─── JADVAL MANAGER ─── */
+async function loadScheduleManager(){
+  const [tch,rooms,times]=await Promise.all([getTch(),getRooms(),getTimes()]);
+  document.getElementById('sch-teacher').innerHTML='<option value="">Tanlang</option>'+tch.map(t=>`<option value="${t.id}">${t.name}</option>`).join('');
+  document.getElementById('sch-room').innerHTML='<option value="">Tanlang</option>'+rooms.map(r=>`<option value="${r.id}">${r.name}</option>`).join('');
+  document.getElementById('sch-time').innerHTML='<option value="">Tanlang</option>'+times.map(t=>`<option value="${t.id}">${t.label}</option>`).join('');
+  await loadScheduleList();
+}
+
+async function loadScheduleList(){
+  const {data}=await SB.from('schedule').select('*, users(name), rooms(name), lesson_times(label)').order('day_of_week').order('id');
+  const el=document.getElementById('scheduleList');
+  if(!data?.length){el.innerHTML='<div class="empty"><div class="empty-ico">📅</div>Jadval yo\'q</div>';return;}
+  el.innerHTML='<div class="sch-grid">'+data.map(s=>`
+    <div class="sch-row">
+      <div class="sch-day">${DAYS[s.day_of_week]||'—'}</div>
+      <div class="sch-time">${s.lesson_times?.label||'—'}</div>
+      <div class="sch-sub">${s.users?.name||'—'}<br><span style="font-size:11px;font-weight:400;color:var(--text2)">${s.subject_name||''}</span></div>
+      <div class="sch-room">🏫 ${s.rooms?.name||'—'}</div>
+      <button class="btn-icon" onclick="deleteSchedule(${s.id})">✕</button>
+    </div>`).join('')+'</div>';
+}
+
+async function addSchedule(){
+  const tchId=document.getElementById('sch-teacher').value;
+  const day=document.getElementById('sch-day').value;
+  const roomId=document.getElementById('sch-room').value;
+  const timeId=document.getElementById('sch-time').value;
+  const subject=document.getElementById('sch-subject').value.trim();
+  if(!tchId||!day){toast("O'qituvchi va kunni tanlang",'warn');return;}
+  const {error}=await SB.from('schedule').insert({teacher_id:parseInt(tchId),day_of_week:parseInt(day),room_id:roomId?parseInt(roomId):null,lesson_time_id:timeId?parseInt(timeId):null,subject_name:subject||null});
+  if(error){toast('Xato: '+error.message,'error');return;}
+  document.getElementById('sch-subject').value='';
+  loadScheduleList(); toast('Jadval qo\'shildi ✓','success');
+}
+
+async function deleteSchedule(id){
+  await SB.from('schedule').delete().eq('id',id);
+  loadScheduleList(); toast("O'chirildi",'info');
+}
+
+/* ─── MUROJAATLAR ─── */
+const INQ_STATUS = {new:'Yangi',contacted:'Bog\'lanildi',enrolled:'Yozildi',closed:'Yopildi'};
+const INQ_COLOR = {new:'b-indigo',contacted:'b-amber',enrolled:'b-green',closed:'b-red'};
+
+async function loadInquiries(){
+  const {data}=await SB.from('inquiries').select('*').order('created_at',{ascending:false});
+  const el=document.getElementById('inquiryList');
+  if(!data?.length){el.innerHTML='<div class="empty"><div class="empty-ico">📞</div>Murojaat yo\'q</div>';return;}
+  el.innerHTML=data.map(i=>`
+    <div class="inq-card">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;">
+        <div><div class="inq-name">${i.name}</div><div class="inq-meta">📞 ${i.phone} ${i.subject?'• '+i.subject:''}</div>${i.message?`<div class="inq-meta" style="margin-top:4px;">${i.message}</div>`:''}</div>
+        <span class="badge ${INQ_COLOR[i.status]||'b-indigo'}">${INQ_STATUS[i.status]||i.status}</span>
+      </div>
+      <div class="inq-actions">
+        <button class="btn btn-sm btn-outline" onclick="updateInqStatus(${i.id},'contacted')">📞 Bog'lanildi</button>
+        <button class="btn btn-sm btn-outline" onclick="updateInqStatus(${i.id},'enrolled')">✅ Yozildi</button>
+        <button class="btn btn-sm btn-danger" onclick="updateInqStatus(${i.id},'closed')">✕ Yopish</button>
+      </div>
+    </div>`).join('');
+}
+
+async function addInquiry(){
+  const name=document.getElementById('inq-name').value.trim();
+  const phone=document.getElementById('inq-phone').value.trim();
+  if(!name||!phone){toast("Ism va telefon kiriting",'warn');return;}
+  const {error}=await SB.from('inquiries').insert({name,phone,subject:document.getElementById('inq-subject').value.trim()||null,message:document.getElementById('inq-msg').value.trim()||null,status:document.getElementById('inq-status').value});
+  if(error){toast('Xato: '+error.message,'error');return;}
+  toggleForm('addInqForm');
+  ['inq-name','inq-phone','inq-subject','inq-msg'].forEach(x=>document.getElementById(x).value='');
+  loadInquiries(); toast('Murojaat qo\'shildi ✓','success');
+}
+
+async function updateInqStatus(id,status){
+  await SB.from('inquiries').update({status}).eq('id',id);
+  loadInquiries(); toast('Holat yangilandi','success');
+}
+
+/* ─── KIRIM ─── */
+async function loadIncome(){
+  const stu=await getStu();
+  document.getElementById('inc-stu').innerHTML='<option value="">Tanlang</option>'+stu.map(s=>`<option value="${s.id}" data-name="${s.name}">${s.name}</option>`).join('');
+  const {data}=await SB.from('income').select('*').order('created_at',{ascending:false});
+  const el=document.getElementById('incomeList');
+  if(!data?.length){el.innerHTML='<div class="empty"><div class="empty-ico">💰</div>Kirim yo\'q</div>';return;}
+  const total=data.reduce((s,r)=>s+Number(r.amount||0),0);
+  el.innerHTML=data.map(r=>`
+    <div class="income-row">
+      <div style="font-size:20px;">${r.method==='karta'?'💳':r.method==='transfer'?'🏦':'💵'}</div>
+      <div class="income-info"><div class="income-name">${r.stu_name||'—'}</div><div class="income-meta">${r.method} • ${fmtDate(r.created_at)} ${r.note?'• '+r.note:''}</div></div>
+      <div class="income-amount">${numFmt(r.amount)}</div>
+    </div>`).join('');
+  document.getElementById('incomeTotalBox').style.display='block';
+  document.getElementById('incomeTotal').textContent=numFmt(total)+' so\'m';
+}
+
+async function addIncome(){
+  const stuSel=document.getElementById('inc-stu');
+  const stuId=stuSel.value;
+  const stuName=stuSel.options[stuSel.selectedIndex]?.dataset?.name||'';
+  const amount=parseFloat(document.getElementById('inc-amount').value);
+  if(!stuId||!amount){toast("To'ldiring",'warn');return;}
+  const method=document.getElementById('inc-method').value;
+  const note=document.getElementById('inc-note').value.trim();
+  // income jadvaliga yoz
+  const {error}=await SB.from('income').insert({stu_id:parseInt(stuId),stu_name:stuName,amount,method,note:note||null,recorded_by:CU.id});
+  if(error){toast('Xato: '+error.message,'error');return;}
+  // payments jadvalida tasdiqlash
+  const {data:pendingPay}=await SB.from('payments').select('*').eq('stu_id',parseInt(stuId)).eq('status','pending').single();
+  if(pendingPay){
+    await SB.from('payments').update({status:'paid',amount,paid_at:new Date().toISOString()}).eq('id',pendingPay.id);
+  }
+  toggleForm('addIncomeForm');
+  ['inc-amount','inc-note'].forEach(x=>document.getElementById(x).value='');
+  addLog("To'lov qabul",stuName+' — '+numFmt(amount)+' so\'m','success');
+  loadIncome(); toast(stuName+": "+numFmt(amount)+" so'm qayd etildi ✓",'success');
 }
 
 async function loadMPass(){
@@ -1194,50 +1732,66 @@ async function loadJurnal(){
     const pct=Math.round(cnt/DATES.length*100);
     const {data:pay}=await SB.from('payments').select('*').eq('stu_id',s.id).eq('status','pending').single();
     const badge=pay?'<span class="badge b-amber">⚠ To\'lov</span>':pct>=80?'<span class="badge b-green">A\'lo</span>':'<span class="badge b-red">Past</span>';
-    return `<tr><td class="td-bold">${s.name}</td><td style="font-family:'JetBrains Mono',monospace;font-weight:600">${cnt}/${DATES.length}</td><td>${pbar(pct)}</td><td>${badge}</td></tr>`;
+    return `<tr><td class="td-bold">${s.name}</td><td style="font-size:12px;color:var(--text2)">${s.phone||'—'}</td><td style="font-family:'JetBrains Mono',monospace;font-weight:600">${cnt}/${DATES.length}</td><td>${pbar(pct)}</td><td>${badge}</td></tr>`;
   }));
-  document.getElementById('jurnalBody').innerHTML=rows.join('')||'<tr><td colspan="4" style="text-align:center;padding:20px;color:var(--text3)">O\'quvchi yo\'q</td></tr>';
+  document.getElementById('jurnalBody').innerHTML=rows.join('')||'<tr><td colspan="5" style="text-align:center;padding:20px;color:var(--text3)">O\'quvchi yo\'q</td></tr>';
+}
+
+async function loadTchSchedule(){
+  const {data}=await SB.from('schedule').select('*, rooms(name), lesson_times(label)').eq('teacher_id',CU.id).order('day_of_week');
+  const el=document.getElementById('tchScheduleList');
+  if(!data?.length){el.innerHTML='<div class="empty"><div class="empty-ico">📅</div>Jadval belgilanmagan</div>';return;}
+  el.innerHTML='<div class="sch-grid">'+data.map(s=>`
+    <div class="sch-row">
+      <div class="sch-day">${DAYS[s.day_of_week]||'—'}</div>
+      <div class="sch-time">${s.lesson_times?.label||'—'}</div>
+      <div class="sch-sub">${s.subject_name||CU.subject||'—'}</div>
+      <div class="sch-room">🏫 ${s.rooms?.name||'—'}</div>
+    </div>`).join('')+'</div>';
 }
 
 async function loadTchPay(){
   const ms=await getMyStudents(CU.id);
-  const list=document.getElementById('tchPayList');
-  if(!ms.length){list.innerHTML='<div class="empty"><div class="empty-ico">👥</div>O\'quvchi yo\'q</div>';return;}
-  const rows=await Promise.all(ms.map(async(s,i)=>{
+  const el=document.getElementById('tchPayList');
+  if(!ms.length){el.innerHTML='<div class="empty">O\'quvchi yo\'q</div>';return;}
+  const rows=await Promise.all(ms.map(async s=>{
     const atts=await getAttendance(s.id);
     const cnt=atts.filter(a=>a.came).length;
     const pct=Math.round(cnt/DATES.length*100);
-    const {data:pay}=await SB.from('payments').select('*').eq('stu_id',s.id).single();
-    const status=pay?.status||'ok';
-    return `<div class="pay-card" style="${status==='pending'?'':'border-color:rgba(16,185,129,0.2);background:rgba(16,185,129,0.04);'}">
-      <div class="avatar ${avColors(i)}" style="width:42px;height:42px;border-radius:10px">${initials(s.name)}</div>
-      <div class="pay-info"><div class="pay-name">${s.name}</div><div class="pay-meta">${cnt} ta dars (${pct}%)</div></div>
-      ${status==='pending'?'<span class="badge b-amber">⚠ To\'lov kerak</span>':status==='paid'?'<span class="badge b-green">To\'landi ✓</span>':'<span class="badge b-indigo">Normal</span>'}
+    const {data:pay}=await SB.from('payments').select('*').eq('stu_id',s.id).order('created_at',{ascending:false}).limit(1);
+    const p=pay?.[0];
+    return `<div class="pay-card">
+      <div style="font-size:22px;">${p?.status==='paid'?'✅':cnt>=CFG.trigger?'⚠️':'🟡'}</div>
+      <div class="pay-info"><div class="pay-name">${s.name}</div>
+      <div class="pay-meta">${cnt} ta dars • ${pbar(pct)} ${p?.amount?'• '+numFmt(p.amount)+' so\'m':''}</div></div>
+      <span class="badge ${p?.status==='paid'?'b-green':'b-amber'}">${p?.status==='paid'?"To'landi":'Kutilmoqda'}</span>
     </div>`;
   }));
-  list.innerHTML=rows.join('');
+  el.innerHTML=rows.join('');
 }
 
 async function loadTchProfile(){
   const el=document.getElementById('tchProfileInfo');
+  const {data:students}=await SB.from('users').select('*').eq('role','oquvchi').eq('teacher_id',CU.id);
   el.innerHTML=`
     <div class="profile-card">
       <div class="profile-avatar">${initials(CU.name)}</div>
-      <div class="profile-info"><div class="profile-name">${CU.name}</div><div class="profile-meta">${CU.subject||'O\'qituvchi'} • ${CU.login}</div></div>
+      <div class="profile-info"><div class="profile-name">${CU.name}</div><div class="profile-meta">O'qituvchi • ${CU.subject||''} • ${CU.login}</div></div>
     </div>
+    ${CU.phone?`<div class="notif" style="margin-bottom:12px;"><div class="notif-icon">📞</div><div class="notif-body"><div class="notif-title">Telefon</div><div class="notif-desc">${CU.phone}</div></div></div>`:''}
     <div class="card" style="background:rgba(0,0,0,0.3);border:1px solid var(--border);">
       <div class="card-title" style="margin-bottom:14px;">Parolni o'zgartirish</div>
       <div class="fgroup" style="margin-bottom:10px;"><div class="finput-label">Joriy parol</div><input class="finput" type="password" id="tch-old-pass" placeholder="Joriy parol"></div>
       <div class="fgroup" style="margin-bottom:10px;"><div class="finput-label">Yangi parol</div><input class="finput" type="password" id="tch-new-pass" placeholder="Yangi parol"></div>
       <div class="fgroup" style="margin-bottom:14px;"><div class="finput-label">Tasdiqlash</div><input class="finput" type="password" id="tch-conf-pass" placeholder="Qayta kiriting"></div>
-      <button class="btn btn-sm btn-primary" onclick="selfChangePass('tch')">Saqlash</button>
+      <button class="btn btn-sm btn-primary" onclick="selfChangePassTch()">Saqlash</button>
     </div>`;
 }
 
-async function selfChangePass(prefix){
-  const oldP=document.getElementById(prefix+'-old-pass').value;
-  const newP=document.getElementById(prefix+'-new-pass').value;
-  const conP=document.getElementById(prefix+'-conf-pass').value;
+async function selfChangePassTch(){
+  const oldP=document.getElementById('tch-old-pass').value;
+  const newP=document.getElementById('tch-new-pass').value;
+  const conP=document.getElementById('tch-conf-pass').value;
   if(!oldP||!newP){toast('Barcha maydonlarni to\'ldiring','warn');return;}
   if(oldP!==CU.pass){toast('Joriy parol noto\'g\'ri','error');return;}
   if(newP!==conP){toast('Parollar mos kelmadi','error');return;}
@@ -1247,67 +1801,65 @@ async function selfChangePass(prefix){
   toast("Parol o'zgartirildi ✓",'success');
 }
 
-async function checkPayTrigger(stuId){
-  const atts=await getAttendance(stuId);
-  const cnt=atts.filter(a=>a.came).length;
-  if(cnt>=CFG.trigger){
-    const {data:existing}=await SB.from('payments').select('*').eq('stu_id',stuId).eq('status','pending').single();
-    if(!existing){
-      const {data:stu}=await SB.from('users').select('name').eq('id',stuId).single();
-      const name=stu?.name||'O\'quvchi';
-      await SB.from('payments').insert({stu_id:stuId,name,count:cnt,status:'pending',date:new Date().toISOString().split('T')[0]});
-      await SB.from('notifications').insert({type:'pay',title:name,body:`${name} — ${cnt} ta darsga keldi. To'lov kerak!`,icon:'⚠️'});
-      addLog("To'lov trigger",name+' — '+cnt+' davomat','warn');
-      toast("⚠️ "+name+" — to'lov eslatmasi",'warn');
-    }
-  }
-}
-
-/* ─── O'QUVCHI VIEWS ─── */
+/* ─── O'QUVCHI ─── */
 async function loadStuAtt(){
   const atts=await getAttendance(CU.id);
   const cnt=atts.filter(a=>a.came).length;
-  const pct=Math.round(cnt/DATES.length*100);
+  const pct=Math.round(cnt/Math.max(atts.length,1)*100);
   document.getElementById('sDavCnt').textContent=cnt;
   document.getElementById('sDavPct').textContent=pct+'%';
-  document.getElementById('stuAttBody').innerHTML=DATES.map((d,i)=>{
-    const att=atts[atts.length-1-i];
-    const came=att?.came;
-    return `<tr><td style="color:var(--text2)">${d}</td><td>${came?'<span class="badge b-green">✓ Keldi</span>':'<span class="badge b-red">✗ Kelmadi</span>'}</td></tr>`;
-  }).join('');
+  document.getElementById('stuAttBody').innerHTML=atts.slice(0,30).map(a=>`
+    <tr><td>${a.date}</td><td>${a.came?'<span class="badge b-green">✓ Keldi</span>':'<span class="badge b-red">✗ Kelmadi</span>'}</td></tr>`).join('')||'<tr><td colspan="2" style="text-align:center;padding:20px;color:var(--text3)">Ma\'lumot yo\'q</td></tr>';
+}
+
+async function loadStuSchedule(){
+  const el=document.getElementById('stuScheduleList');
+  if(!CU.teacher_id){el.innerHTML='<div class="empty"><div class="empty-ico">📅</div>O\'qituvchi biriktirilmagan</div>';return;}
+  const {data}=await SB.from('schedule').select('*, rooms(name), lesson_times(label)').eq('teacher_id',CU.teacher_id).order('day_of_week');
+  if(!data?.length){el.innerHTML='<div class="empty"><div class="empty-ico">📅</div>Jadval belgilanmagan</div>';return;}
+  el.innerHTML='<div class="sch-grid">'+data.map(s=>`
+    <div class="sch-row">
+      <div class="sch-day">${DAYS[s.day_of_week]||'—'}</div>
+      <div class="sch-time">${s.lesson_times?.label||'—'}</div>
+      <div class="sch-sub">${s.subject_name||'—'}</div>
+      <div class="sch-room">🏫 ${s.rooms?.name||'—'}</div>
+    </div>`).join('')+'</div>';
 }
 
 async function loadStuPay(){
-  const {data:pay}=await SB.from('payments').select('*').eq('stu_id',CU.id).single();
   const el=document.getElementById('stuPayInfo');
   const atts=await getAttendance(CU.id);
   const cnt=atts.filter(a=>a.came).length;
-  const pct=Math.round(cnt/DATES.length*100);
-  if(!pay||pay.status==='ok'){
-    el.innerHTML=`<div class="scard" style="text-align:left;padding:20px;">
-      <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;">
-        <span style="font-size:32px">✅</span>
-        <div><div style="font-size:16px;font-weight:700;color:var(--green)">To'lov kerak emas</div><div style="font-size:12px;color:var(--text2);margin-top:3px">Hozircha hamma narsa yaxshi!</div></div>
-      </div>
-      ${pbar(pct)}<div style="font-size:12px;color:var(--text2);margin-top:4px">${cnt} ta dars</div>
-    </div>`;
-  } else if(pay.status==='paid'){
-    el.innerHTML=`<div class="pay-card" style="border-color:rgba(16,185,129,0.4);">
+  const pct=Math.round(cnt/Math.max(DATES.length,1)*100);
+  const {data:pays}=await SB.from('payments').select('*').eq('stu_id',CU.id).order('created_at',{ascending:false});
+  const pay=pays?.[0];
+  const {data:incomes}=await SB.from('income').select('*').eq('stu_id',CU.id).order('created_at',{ascending:false});
+  let html='';
+  if(pay?.status==='paid'){
+    html+=`<div class="pay-card" style="border-color:rgba(16,185,129,0.4);">
       <span style="font-size:32px">✅</span>
-      <div class="pay-info"><div class="pay-name">To'lov qabul qilindi</div><div class="pay-meta">${pay.date||''}</div></div>
+      <div class="pay-info"><div class="pay-name">To'lov qabul qilindi</div><div class="pay-meta">${pay.amount?numFmt(pay.amount)+' so\'m • ':''} ${pay.paid_at?fmtDate(pay.paid_at):''}</div></div>
       <span class="badge b-green">To'landi</span>
     </div>`;
-  } else {
-    el.innerHTML=`<div class="pay-card">
+  } else if(cnt>=CFG.trigger){
+    html+=`<div class="pay-card">
       <span style="font-size:32px">⚠️</span>
-      <div class="pay-info"><div class="pay-name">To'lov qilishingiz kerak!</div><div class="pay-meta">${pay.count} ta dars • ${pay.date||''}</div></div>
+      <div class="pay-info"><div class="pay-name">To'lov qilishingiz kerak!</div><div class="pay-meta">${cnt} ta dars</div></div>
       <span class="badge b-amber">Kutilmoqda</span>
     </div>
-    <div class="notif pay" style="margin-top:10px">
-      <div class="notif-icon">📞</div>
-      <div class="notif-body"><div class="notif-title">Menejer bilan bog'laning</div><div class="notif-desc">To'lov bo'yicha menejer yoki o'qituvchingiz bilan murojaat qiling.</div></div>
+    <div class="notif pay" style="margin-top:10px"><div class="notif-icon">📞</div><div class="notif-body"><div class="notif-title">Menejer bilan bog'laning</div><div class="notif-desc">To'lov bo'yicha menejer yoki o'qituvchingiz bilan murojaat qiling.</div></div></div>`;
+  } else {
+    html+=`<div class="pay-card" style="border-color:rgba(16,185,129,0.3);">
+      <span style="font-size:32px">✅</span>
+      <div><div style="font-size:16px;font-weight:700;color:var(--green)">To'lov kerak emas</div><div style="font-size:12px;color:var(--text2);margin-top:3px">Hozircha hamma narsa yaxshi!</div></div>
     </div>`;
   }
+  html+=`<div style="margin-top:8px;">${pbar(pct)}<div style="font-size:12px;color:var(--text2);margin-top:4px">${cnt} ta dars</div></div>`;
+  if((incomes||[]).length){
+    html+='<div style="margin-top:14px;font-size:12px;font-weight:700;color:var(--text2);margin-bottom:8px;">To\'lov tarixi</div>';
+    html+=(incomes||[]).map(r=>`<div class="income-row"><div style="font-size:18px;">${r.method==='karta'?'💳':r.method==='transfer'?'🏦':'💵'}</div><div class="income-info"><div class="income-name">${fmtDate(r.created_at)}</div><div class="income-meta">${r.method} ${r.note?'• '+r.note:''}</div></div><div class="income-amount">${numFmt(r.amount)}</div></div>`).join('');
+  }
+  el.innerHTML=html;
 }
 
 async function loadStuProfile(){
@@ -1318,6 +1870,8 @@ async function loadStuProfile(){
       <div class="profile-avatar">${initials(CU.name)}</div>
       <div class="profile-info"><div class="profile-name">${CU.name}</div><div class="profile-meta">O'quvchi • ${CU.login}${teacher?(' • '+teacher.name):''}</div></div>
     </div>
+    ${CU.phone?`<div class="notif" style="margin-bottom:10px;"><div class="notif-icon">📞</div><div class="notif-body"><div class="notif-title">Telefon</div><div class="notif-desc">${CU.phone}</div></div></div>`:''}
+    ${CU.subjects?`<div class="notif" style="margin-bottom:10px;"><div class="notif-icon">📚</div><div class="notif-body"><div class="notif-title">Fanlarim</div><div class="notif-desc">${CU.subjects}</div></div></div>`:''}
     <div class="card" style="background:rgba(0,0,0,0.3);border:1px solid var(--border);">
       <div class="card-title" style="margin-bottom:14px;">Parolni o'zgartirish</div>
       <div class="fgroup" style="margin-bottom:10px;"><div class="finput-label">Joriy parol</div><input class="finput" type="password" id="stu-old-pass" placeholder="Joriy parol"></div>
@@ -1338,6 +1892,87 @@ async function selfChangePassStu(){
   if(error){toast('Xato: '+error.message,'error');return;}
   CU.pass=newP;
   toast("Parol o'zgartirildi ✓",'success');
+}
+
+/* ─── OTA-ONA CABINET ─── */
+async function loadParentBosh(){
+  const el=document.getElementById('parentChildrenList');
+  // Ota-ona o'z bolalarini parent_phone orqali topadi
+  const myPhone=CU.phone||CU.login;
+  const {data:children}=await SB.from('users').select('*').eq('role','oquvchi').eq('parent_phone',myPhone);
+  if(!children?.length){
+    el.innerHTML='<div class="empty"><div class="empty-ico">👧</div>Farzandlar topilmadi<div style="font-size:12px;margin-top:8px;color:var(--text3)">Telefon raqamingiz o\'quvchi ma\'lumotida bo\'lishi kerak</div></div>';
+    return;
+  }
+  el.innerHTML=await Promise.all(children.map(async c=>{
+    const atts=await getAttendance(c.id);
+    const cnt=atts.filter(a=>a.came).length;
+    const pct=Math.round(cnt/Math.max(DATES.length,1)*100);
+    const {data:tch}=c.teacher_id?await SB.from('users').select('name,subject').eq('id',c.teacher_id).single():{data:null};
+    return `<div class="parent-stu-card">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px;">
+        <div class="avatar av-indigo">${initials(c.name)}</div>
+        <div><div style="font-size:15px;font-weight:700;">${c.name}</div><div style="font-size:12px;color:var(--text2);">${c.subjects||''} ${tch?'• '+tch.name:''}</div></div>
+      </div>
+      <div style="font-size:12px;color:var(--text2);margin-bottom:6px;">Davomat: ${cnt} ta dars</div>
+      ${pbar(pct)}
+    </div>`;
+  })).then(h=>h.join(''));
+}
+
+async function loadParentAtt(){
+  const el=document.getElementById('parentAttList');
+  const myPhone=CU.phone||CU.login;
+  const {data:children}=await SB.from('users').select('*').eq('role','oquvchi').eq('parent_phone',myPhone);
+  if(!children?.length){el.innerHTML='<div class="empty">Farzandlar topilmadi</div>';return;}
+  let html='';
+  for(const c of children){
+    const atts=await getAttendance(c.id);
+    html+=`<div style="margin-bottom:16px;"><div style="font-size:14px;font-weight:700;margin-bottom:8px;">📅 ${c.name}</div>
+      <div class="table-wrap"><table><thead><tr><th>Sana</th><th>Status</th></tr></thead><tbody>
+      ${atts.slice(0,20).map(a=>`<tr><td>${a.date}</td><td>${a.came?'<span class="badge b-green">✓ Keldi</span>':'<span class="badge b-red">✗ Kelmadi</span>'}</td></tr>`).join('')||'<tr><td colspan="2" style="text-align:center;color:var(--text3)">Ma\'lumot yo\'q</td></tr>'}
+      </tbody></table></div></div>`;
+  }
+  el.innerHTML=html;
+}
+
+async function loadParentPay(){
+  const el=document.getElementById('parentPayList');
+  const myPhone=CU.phone||CU.login;
+  const {data:children}=await SB.from('users').select('*').eq('role','oquvchi').eq('parent_phone',myPhone);
+  if(!children?.length){el.innerHTML='<div class="empty">Farzandlar topilmadi</div>';return;}
+  let html='';
+  for(const c of children){
+    const {data:pays}=await SB.from('payments').select('*').eq('stu_id',c.id).order('created_at',{ascending:false});
+    const {data:incomes}=await SB.from('income').select('*').eq('stu_id',c.id).order('created_at',{ascending:false});
+    const lastPay=pays?.[0];
+    html+=`<div style="margin-bottom:16px;">
+      <div style="font-size:14px;font-weight:700;margin-bottom:8px;">💳 ${c.name}</div>
+      <div class="pay-card">
+        <span style="font-size:24px;">${lastPay?.status==='paid'?'✅':'⚠️'}</span>
+        <div class="pay-info"><div class="pay-name">${lastPay?.status==='paid'?'To\'lov amalga oshirildi':'To\'lov kutilmoqda'}</div>
+        <div class="pay-meta">${lastPay?.amount?numFmt(lastPay.amount)+' so\'m':''}${lastPay?.paid_at?' • '+fmtDate(lastPay.paid_at):''}</div></div>
+        <span class="badge ${lastPay?.status==='paid'?'b-green':'b-amber'}">${lastPay?.status==='paid'?'To\'landi':'Kutilmoqda'}</span>
+      </div>
+      ${(incomes||[]).map(r=>`<div class="income-row"><div style="font-size:18px;">💵</div><div class="income-info"><div class="income-name">${fmtDate(r.created_at)}</div><div class="income-meta">${r.method}</div></div><div class="income-amount">${numFmt(r.amount)}</div></div>`).join('')}
+    </div>`;
+  }
+  el.innerHTML=html;
+}
+
+/* ─── PAY TRIGGER ─── */
+async function checkPayTrigger(stuId){
+  const atts=await getAttendance(stuId);
+  const cnt=atts.filter(a=>a.came).length;
+  if(cnt>0 && cnt%CFG.trigger===0){
+    const {data:stu}=await SB.from('users').select('*').eq('id',stuId).single();
+    const {data:existPay}=await SB.from('payments').select('*').eq('stu_id',stuId).eq('status','pending').single();
+    if(!existPay){
+      await SB.from('payments').insert({stu_id:stuId,name:stu?.name,count:cnt,status:'pending',date:new Date().toLocaleDateString()});
+      await SB.from('notifications').insert({type:'pay',title:"To'lov eslatmasi",body:(stu?.name||'O\'quvchi')+' — '+cnt+' ta darsga keldi. To\'lov qilishi kerak!',icon:'⚠️'});
+      toast((stu?.name||'O\'quvchi')+": "+cnt+" ta dars — to'lov kerak!",'warn');
+    }
+  }
 }
 
 /* ══════════════ CHAT ══════════════ */
@@ -1366,6 +2001,12 @@ function initChatView(){
   }
   if(CU.role==='oquvchi' && CU.teacher_id){
     rooms.push({id:'room_tch_'+CU.teacher_id,label:'👨‍🏫 Ustoz bilan'});
+  }
+  if(CU.role==='otaona'){
+    rooms.push({id:'room_parent_'+CU.id,label:'👨‍🏫 Menejer bilan'});
+  }
+  if(CU.role==='menejer'){
+    rooms.push({id:'room_menejer',label:'👨‍👩‍👧 Ota-onalar'});
   }
   tabs.innerHTML=rooms.map((r,i)=>`<button class="chat-tab${i===0?' active':''}" onclick="switchChatRoom('${r.id}',this)">${r.label}</button>`).join('');
   currentChatRoom='general';
