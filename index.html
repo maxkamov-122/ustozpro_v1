@@ -302,6 +302,21 @@ tbody tr:hover td { background:rgba(255,255,255,0.03); }
 .income-meta { font-size:11px; color:var(--text2); margin-top:2px; }
 /* ─── PARENT CABINET ─── */
 .parent-stu-card { padding:16px; background:rgba(99,102,241,0.08); border:1px solid rgba(99,102,241,0.2); border-radius:16px; margin-bottom:12px; }
+
+/* ─── FROZEN SCREEN ─── */
+.frozen-screen { position:fixed; inset:0; z-index:9000; background:#050714; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:32px; text-align:center; }
+.frozen-icon { font-size:64px; margin-bottom:20px; }
+.frozen-title { font-size:22px; font-weight:800; color:#f87171; margin-bottom:10px; }
+.frozen-msg { font-size:14px; color:var(--text2); line-height:1.7; max-width:340px; }
+/* ─── TCH DETAIL ─── */
+.tch-stu-row { display:flex; align-items:center; gap:10px; padding:10px 12px; background:rgba(0,0,0,0.25); border:1px solid var(--border); border-radius:10px; margin-bottom:6px; }
+.tch-stu-name { font-size:13px; font-weight:600; color:var(--text); flex:1; }
+.tch-stu-meta { font-size:11px; color:var(--text2); }
+/* ─── FREEZE BTNS ─── */
+.btn-freeze { background:rgba(251,146,60,0.15); border:1px solid rgba(251,146,60,0.3); color:#fb923c; }
+.btn-freeze:hover { background:rgba(251,146,60,0.3); }
+.btn-unfreeze { background:rgba(16,185,129,0.15); border:1px solid rgba(16,185,129,0.3); color:#34d399; }
+.btn-unfreeze:hover { background:rgba(16,185,129,0.3); }
 </style>
 </head>
 <body>
@@ -516,6 +531,7 @@ tbody tr:hover td { background:rgba(255,255,255,0.03); }
           <div class="card-hd"><div class="card-title">⚙️ Sozlamalar</div></div>
           <div class="fg" style="gap:14px;">
             <div class="fgroup"><div class="finput-label">To'lov trigger (dars soni)</div><input class="finput" id="cfg-trigger" type="number" value="14"></div>
+            <div class="fgroup"><div class="finput-label">🔒 Muzlatilgan akkaunt matni</div><textarea class="finput" id="cfg-frozen-msg" style="resize:vertical;min-height:70px;" placeholder="Akkauntingiz muzlatilgan. Murojaat uchun: +998..."></textarea></div>
             <div class="fgroup"><div class="finput-label">Platforma nomi</div><input class="finput" id="cfg-name" value="USTOZPRO"></div>
             <div class="fgroup"><div class="finput-label">Xabar shabloni</div><textarea class="finput" id="cfg-msg" style="resize:vertical;min-height:80px;">{ism} — {count} ta darsga keldi. To'lov qilishi kerak!</textarea></div>
             <button class="btn btn-gold btn-sm" style="width:fit-content" onclick="saveSettings()">Saqlash ✓</button>
@@ -785,7 +801,7 @@ tbody tr:hover td { background:rgba(255,255,255,0.03); }
           <div class="scard"><div class="sv sv-indigo" id="sDavPct">0%</div><div class="sl">Foiz</div></div>
         </div>
         <div class="table-wrap">
-          <table>
+          <tr>
             <thead><tr><th>Sana</th><th>Status</th></tr></thead>
             <tbody id="stuAttBody"></tbody>
           </table>
@@ -886,10 +902,62 @@ tbody tr:hover td { background:rgba(255,255,255,0.03); }
   <div class="modal" style="max-width:460px;">
     <div class="modal-title">👤 O'quvchi ma'lumotlari</div>
     <div id="stuDetailContent"></div>
-    <div class="modal-actions">
+    <div class="modal-actions" id="stuDetailActions">
       <button class="btn btn-sm btn-outline" onclick="closeModal('stuDetailModal')">Yopish</button>
     </div>
   </div>
+</div>
+
+<!-- TEACHER DETAIL MODAL -->
+<div class="modal-overlay" id="tchDetailModal">
+  <div class="modal" style="max-width:500px;">
+    <div class="modal-title" id="tchDetailTitle">👨‍🏫 O'qituvchi ma'lumotlari</div>
+    <div id="tchDetailContent"></div>
+    <div class="modal-actions" id="tchDetailActions">
+      <button class="btn btn-sm btn-outline" onclick="closeModal('tchDetailModal')">Yopish</button>
+    </div>
+  </div>
+</div>
+
+<!-- EDIT USER MODAL -->
+<div class="modal-overlay" id="editUserModal">
+  <div class="modal" style="max-width:460px;">
+    <div class="modal-title">✏️ Ma'lumotlarni tahrirlash</div>
+    <input type="hidden" id="edit-user-id">
+    <input type="hidden" id="edit-user-role">
+    <div class="fg fg2" style="margin-bottom:10px;">
+      <div class="fgroup"><div class="finput-label">Ism familiya</div><input class="finput" id="edit-name" placeholder="To'liq ism"></div>
+      <div class="fgroup"><div class="finput-label">Telefon</div><input class="finput" id="edit-phone" placeholder="+998..."></div>
+    </div>
+    <div class="fg fg2" style="margin-bottom:10px; display:none;" id="edit-stu-extra">
+      <div class="fgroup"><div class="finput-label">Ota-ona ismi</div><input class="finput" id="edit-pname" placeholder="Ota-ona ismi"></div>
+      <div class="fgroup"><div class="finput-label">Ota-ona tel</div><input class="finput" id="edit-pphone" placeholder="+998..."></div>
+    </div>
+    <div class="fgroup" style="margin-bottom:10px; display:none;" id="edit-subjects-wrap">
+      <div class="finput-label">Fanlar</div>
+      <input class="finput" id="edit-subjects" placeholder="Matematika, Fizika">
+    </div>
+    <div class="fgroup" style="margin-bottom:10px; display:none;" id="edit-subject-wrap">
+      <div class="finput-label">O'qituvchi fani</div>
+      <input class="finput" id="edit-subject" placeholder="Matematika">
+    </div>
+    <div class="fgroup" style="margin-bottom:10px; display:none;" id="edit-teacher-wrap">
+      <div class="finput-label">O'qituvchi</div>
+      <select class="finput" id="edit-teacher"><option value="">Tanlang</option></select>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-sm btn-outline" onclick="closeModal('editUserModal')">Bekor</button>
+      <button class="btn btn-sm btn-primary" onclick="saveEditUser()">Saqlash</button>
+    </div>
+  </div>
+</div>
+
+<!-- FROZEN SCREEN -->
+<div class="frozen-screen" id="frozenScreen" style="display:none;">
+  <div class="frozen-icon">🔒</div>
+  <div class="frozen-title">Akkaunt muzlatilgan</div>
+  <div class="frozen-msg" id="frozenMsg">Sizning akkauntingiz vaqtinchalik muzlatilgan. Menejer bilan bog'laning.</div>
+  <button class="btn btn-primary" style="margin-top:20px;" onclick="location.reload()">Kirish sahifasiga</button>
 </div>
 
 <!-- TOAST -->
@@ -977,14 +1045,17 @@ async function doLogin(){
   if(!l||!p){ toast("Login va parol kiriting",'warn'); return; }
   showLoading('Tekshirilmoqda...');
   try {
-    // Faqat login+pass tekshiramiz, role DB dan o'qiladi
     const { data, error } = await SB.from('users').select('*').eq('login',l).eq('pass',p).maybeSingle();
     hideLoading();
     if(error){ toast('DB xato: '+error.message,'error'); return; }
     if(!data){ toast("Login yoki parol noto'g'ri",'error'); return; }
-    // Tanlangan tab bilan rolni solishtirish (faqat ogohlantirish)
-    if(data.role !== selectedRole){
-      toast("Diqqat: siz "+data.role+" sifatida kiryapsiz",'info');
+    if(data.is_frozen){
+      hideLoading();
+      const {data:fmCfg}=await SB.from('config').select('value').eq('key','frozen_msg').maybeSingle();
+      document.getElementById('frozenMsg').textContent = fmCfg?.value || "Sizning akkauntingiz vaqtinchalik muzlatilgan. Menejer bilan bog'laning.";
+      document.getElementById('loginScreen').classList.remove('active');
+      document.getElementById('frozenScreen').style.display='flex';
+      return;
     }
     CU = data;
     addLog('Login', CU.name+' tizimga kirdi', 'info');
@@ -1154,9 +1225,14 @@ function switchSettingsTab(name, btn){
   else if(name==='config') loadAdminSettings();
 }
 
-function loadAdminSozlash(){
+async function loadAdminSozlash(){
   document.getElementById('settings-fanlar').classList.add('active');
   loadSubjects();
+  try{
+    const {data:fmCfg}=await SB.from('config').select('value').eq('key','frozen_msg').maybeSingle();
+    const el=document.getElementById('cfg-frozen-msg');
+    if(el&&fmCfg) el.value=fmCfg.value;
+  }catch(e){}
 }
 
 /* ─── ADMIN VIEWS ─── */
@@ -1181,12 +1257,15 @@ async function loadAdminUsers(){
   const users = await getUsers();
   document.getElementById('adminUserTable').innerHTML = users.filter(u=>u.role!=='admin').map(u=>`
     <tr>
-      <td class="td-bold">${u.name}</td>
+      <td class="td-bold" style="cursor:pointer;color:var(--c3);" onclick="showUserDetail(${u.id})">${u.name}${u.is_frozen?'<span class="badge b-red" style="margin-left:4px;font-size:9px">🔒</span>':''}</td>
       <td style="font-family:'JetBrains Mono',monospace;font-size:12px">${u.login}</td>
       <td>${roleBadge(u.role)}</td>
       <td style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text3)">${u.tg_id||'—'}</td>
       <td style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text3)">${u.pass||'—'}</td>
-      <td><button class="btn-icon" onclick="deleteUser(${u.id})">✕</button></td>
+      <td style="white-space:nowrap;">
+        <button class="btn btn-sm ${u.is_frozen?'btn-unfreeze':'btn-freeze'}" style="padding:4px 8px;font-size:11px;margin-right:4px;" onclick="toggleFreeze(${u.id},${!u.is_frozen})">${u.is_frozen?'🔓':'🔒'}</button>
+        <button class="btn-icon" onclick="deleteUser(${u.id})">✕</button>
+      </td>
      </tr>`).join('');
   const teachers = users.filter(u=>u.role==='oqutuvchi');
   document.getElementById('au-teacher').innerHTML = '<option value="">Tanlang</option>'+teachers.map(t=>`<option value="${t.id}">${t.name}</option>`).join('');
@@ -1294,6 +1373,8 @@ async function saveSettings(){
   await SB.from('config').upsert({key:'trigger',value:String(trigger)},{onConflict:'key'});
   await SB.from('config').upsert({key:'name',value:document.getElementById('cfg-name').value},{onConflict:'key'});
   await SB.from('config').upsert({key:'msg',value:document.getElementById('cfg-msg').value},{onConflict:'key'});
+  const fmEl=document.getElementById('cfg-frozen-msg');
+  if(fmEl&&fmEl.value.trim()) await SB.from('config').upsert({key:'frozen_msg',value:fmEl.value.trim()},{onConflict:'key'});
   toast('Saqlandi ✓','success');
 }
 
@@ -1419,13 +1500,16 @@ async function loadTchTable(){
   document.getElementById('tchTable').innerHTML=tch.map(t=>{
     const cnt=stu.filter(s=>s.teacher_id===t.id).length;
     return `<tr>
-      <td class="td-bold">${t.name}</td>
+      <td class="td-bold" style="cursor:pointer;color:var(--c3);" onclick="showTchDetail(${t.id})">${t.name}${t.is_frozen?'<span class="badge b-red" style="margin-left:4px;font-size:9px">🔒</span>':''}</td>
       <td style="color:var(--text2)">${t.subject||'—'}</td>
       <td>${cnt} ta</td>
       <td style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text3)">${t.pass||'—'}</td>
-      <td><button class="btn-icon" onclick="deleteUser(${t.id})">✕</button></td>
-     </tr>`;
-  }).join('')||'<tr><td colspan="5" style="text-align:center;padding:20px;color:var(--text3)">O\'qituvchi yo\'q</td></tr>';
+      <td style="white-space:nowrap;">
+        <button class="btn btn-sm ${t.is_frozen?'btn-unfreeze':'btn-freeze'}" style="padding:4px 8px;font-size:11px;margin-right:4px;" onclick="toggleFreeze(${t.id},${!t.is_frozen})">${t.is_frozen?'🔓 Och':'🔒 Muzla'}</button>
+        <button class="btn-icon" onclick="deleteUser(${t.id})">✕</button>
+      </td>
+     </td>`;
+  }).join('')||'<td><td colspan="5" style="text-align:center;padding:20px;color:var(--text3)">O\'qituvchi yo\'q</td></tr>';
 }
 
 async function addTeacher(){
@@ -1456,13 +1540,16 @@ async function loadStuTable(){
     const pct=Math.round(cnt/DATES.length*100);
     const hasPay=(pays||[]).find(p=>p.stu_id===s.id&&p.status==='pending');
     return `<tr>
-      <td class="td-bold" style="cursor:pointer;color:var(--c3);" onclick="showStuDetail(${s.id})">${s.name}</td>
+      <td class="td-bold" style="cursor:pointer;color:var(--c3);" onclick="showStuDetailFull(${s.id})">${s.name}${s.is_frozen?'<span class="badge b-red" style="margin-left:4px;font-size:9px">🔒</span>':''}</td>
       <td style="font-size:12px;color:var(--text2)">${s.phone||'—'}</td>
       <td style="color:var(--text2)">${teacher?.name||'—'}</td>
       <td style="font-size:11px;color:var(--text2)">${s.subjects||'—'}</td>
       <td>${pbar(pct)}</td>
       <td>${hasPay?'<span class="badge b-amber">⚠ To\'lov</span>':'<span class="badge b-green">Normal</span>'}</td>
-      <td><button class="btn-icon" onclick="deleteUser(${s.id})">✕</button></td>
+      <td style="white-space:nowrap;">
+        <button class="btn btn-sm ${s.is_frozen?'btn-unfreeze':'btn-freeze'}" style="padding:4px 8px;font-size:11px;margin-right:4px;" onclick="toggleFreeze(${s.id},${!s.is_frozen})">${s.is_frozen?'🔓':'🔒'}</button>
+        <button class="btn-icon" onclick="deleteUser(${s.id})">✕</button>
+      </td>
      </tr>`;
   })).then(rows=>rows.join(''))||'<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--text3)">O\'quvchi yo\'q</td></tr>';
 }
@@ -1809,7 +1896,9 @@ async function loadStuAtt(){
   document.getElementById('sDavCnt').textContent=cnt;
   document.getElementById('sDavPct').textContent=pct+'%';
   document.getElementById('stuAttBody').innerHTML=atts.slice(0,30).map(a=>`
-    <tr><td>${a.date}</td><td>${a.came?'<span class="badge b-green">✓ Keldi</span>':'<span class="badge b-red">✗ Kelmadi</span>'}</td></tr>`).join('')||'<tr><td colspan="2" style="text-align:center;padding:20px;color:var(--text3)">Ma\'lumot yo\'q</td></tr>';
+    <tr><td class="text-gray-300">${fmtDate(a.date)}</td>
+      <td>${a.came?'<span class="badge b-green">✓ Keldi</span>':'<span class="badge b-red">✗ Kelmadi</span>'}</td>
+    `).join('')||'<tr><td colspan="2" class="text-center text-gray-500 py-8">Ma\'lumot yo\'q</td></tr>';
 }
 
 async function loadStuSchedule(){
@@ -1897,7 +1986,6 @@ async function selfChangePassStu(){
 /* ─── OTA-ONA CABINET ─── */
 async function loadParentBosh(){
   const el=document.getElementById('parentChildrenList');
-  // Ota-ona o'z bolalarini parent_phone orqali topadi
   const myPhone=CU.phone||CU.login;
   const {data:children}=await SB.from('users').select('*').eq('role','oquvchi').eq('parent_phone',myPhone);
   if(!children?.length){
@@ -1929,8 +2017,8 @@ async function loadParentAtt(){
   for(const c of children){
     const atts=await getAttendance(c.id);
     html+=`<div style="margin-bottom:16px;"><div style="font-size:14px;font-weight:700;margin-bottom:8px;">📅 ${c.name}</div>
-      <div class="table-wrap"><table><thead><tr><th>Sana</th><th>Status</th></tr></thead><tbody>
-      ${atts.slice(0,20).map(a=>`<tr><td>${a.date}</td><td>${a.came?'<span class="badge b-green">✓ Keldi</span>':'<span class="badge b-red">✗ Kelmadi</span>'}</td></tr>`).join('')||'<tr><td colspan="2" style="text-align:center;color:var(--text3)">Ma\'lumot yo\'q</td></tr>'}
+      <div class="table-wrap"><table class="w-full"><thead><tr><th>Sana</th><th>Status</th></tr></thead><tbody>
+      ${atts.slice(0,20).map(a=>`<tr><td class="text-gray-300">${fmtDate(a.date)}</td><td>${a.came?'<span class="badge b-green">✓ Keldi</span>':'<span class="badge b-red">✗ Kelmadi</span>'}</td></tr>`).join('')||'<tr><td colspan="2" class="text-center text-gray-500 py-4">Ma\'lumot yo\'q</td></tr>'}
       </tbody></table></div></div>`;
   }
   el.innerHTML=html;
@@ -1981,7 +2069,11 @@ let chatSubscription = null;
 
 function subscribeToChat(){
   if(!SB) return;
-  chatSubscription = SB.channel('messages-realtime')
+  if(chatSubscription){
+    try{ SB.removeChannel(chatSubscription); }catch(e){}
+    chatSubscription=null;
+  }
+  chatSubscription = SB.channel('messages-rt-'+Date.now())
     .on('postgres_changes',{event:'INSERT',schema:'public',table:'messages'},payload=>{
       const msg=payload.new;
       if(msg.room===currentChatRoom){
@@ -2062,6 +2154,205 @@ async function sendMsg(){
   if(error){ toast('Yuborishda xato','error'); inp.value=txt; return; }
 }
 
+
+/* ══════════════ YANGI FUNKSIYALAR ══════════════ */
+
+const ROLE_LABELS = {admin:'Admin',menejer:'Menejer',oqutuvchi:"O'qituvchi",oquvchi:"O'quvchi",otaona:"Ota-ona"};
+
+/* ─── MUZLATISH ─── */
+async function toggleFreeze(userId, freeze){
+  const val = (freeze===true||freeze==='true');
+  const {error}=await SB.from('users').update({is_frozen:val}).eq('id',userId);
+  if(error){toast('Xato: '+error.message,'error');return;}
+  addLog('Akkaunt '+(val?'muzlatildi':'ochildi'),'User ID '+userId, val?'warn':'success');
+  toast(val?'Akkaunt muzlatildi 🔒':'Akkaunt ochildi 🔓', val?'warn':'success');
+  if(document.getElementById('adminUserTable')) loadAdminUsers();
+  if(document.getElementById('tchTable')) loadTchTable();
+  if(document.getElementById('stuTable')) loadStuTable();
+}
+
+/* ─── USTOZ DETAIL ─── */
+async function showTchDetail(tchId){
+  const {data:t}=await SB.from('users').select('*').eq('id',tchId).single();
+  if(!t){toast('Topilmadi','error');return;}
+  const students=await getMyStudents(tchId);
+  const {data:sched}=await SB.from('schedule').select('*,rooms(name),lesson_times(label)').eq('teacher_id',tchId).order('day_of_week');
+
+  let stuHtml='';
+  if(students.length){
+    const attsAll=await Promise.all(students.map(s=>getAttendance(s.id)));
+    stuHtml='<div style="margin-top:14px;font-size:12px;font-weight:700;color:var(--text2);margin-bottom:8px;">👥 O\'quvchilar ('+students.length+' ta)</div>';
+    stuHtml+=students.map((s,i)=>{
+      const cnt=attsAll[i].filter(a=>a.came).length;
+      const pct=Math.round(cnt/Math.max(attsAll[i].length,1)*100);
+      return `<div class="tch-stu-row">
+        <div class="avatar ${avColors(i)}" style="width:32px;height:32px;font-size:11px;">${initials(s.name)}</div>
+        <div class="tch-stu-name">${s.name}<br><span class="tch-stu-meta">${s.subjects||'—'} • ${cnt} dars</span></div>
+        ${pbar(pct)}
+      </div>`;
+    }).join('');
+  } else {
+    stuHtml='<div class="empty" style="padding:16px 0"><div class="empty-ico">👥</div>O\'quvchi yo\'q</div>';
+  }
+
+  let schedHtml='';
+  if(sched?.length){
+    schedHtml='<div style="margin-top:14px;font-size:12px;font-weight:700;color:var(--text2);margin-bottom:8px;">📅 Dars jadvali</div>';
+    schedHtml+='<div class="sch-grid">'+sched.map(s=>`
+      <div class="sch-row">
+        <div class="sch-day">${DAYS[s.day_of_week]||'—'}</div>
+        <div class="sch-time">${s.lesson_times?.label||'—'}</div>
+        <div class="sch-sub">${s.subject_name||t.subject||'—'}</div>
+        <div class="sch-room">🏫 ${s.rooms?.name||'—'}</div>
+      </div>`).join('')+'</div>';
+  }
+
+  document.getElementById('tchDetailContent').innerHTML=`
+    <div class="profile-card" style="margin-bottom:12px;">
+      <div class="profile-avatar">${initials(t.name)}</div>
+      <div class="profile-info">
+        <div class="profile-name">${t.name} ${t.is_frozen?'<span class="badge b-red">🔒 Muzlatilgan</span>':''}</div>
+        <div class="profile-meta">O'qituvchi • ${t.subject||'—'} • ${t.login}</div>
+      </div>
+    </div>
+    <div style="display:grid;gap:8px;">
+      <div class="notif" style="border-left-color:var(--c3)"><div class="notif-icon">📞</div><div class="notif-body"><div class="notif-title">Telefon</div><div class="notif-desc">${t.phone||'—'}</div></div></div>
+      <div class="notif"><div class="notif-icon">🎓</div><div class="notif-body"><div class="notif-title">O'quvchilar soni</div><div class="notif-desc">${students.length} ta o'quvchi</div></div></div>
+    </div>
+    ${schedHtml}${stuHtml}`;
+
+  const canEdit=(CU.role==='admin'||CU.role==='menejer');
+  document.getElementById('tchDetailActions').innerHTML=
+    (canEdit?`<button class="btn btn-sm btn-primary" onclick="openEditUser(${t.id})">✏️ Tahrirlash</button>
+    <button class="btn btn-sm ${t.is_frozen?'btn-unfreeze':'btn-freeze'}" onclick="toggleFreeze(${t.id},${!t.is_frozen});closeModal('tchDetailModal')">${t.is_frozen?'🔓 Ochish':'🔒 Muzlatish'}</button>`:'')+
+    `<button class="btn btn-sm btn-outline" onclick="closeModal('tchDetailModal')">Yopish</button>`;
+
+  openModal('tchDetailModal');
+}
+
+/* ─── FOYDALANUVCHI DETAIL (admin panel click) ─── */
+async function showUserDetail(userId){
+  const {data:u}=await SB.from('users').select('*').eq('id',userId).single();
+  if(!u) return;
+  if(u.role==='oqutuvchi'){ showTchDetail(userId); return; }
+  if(u.role==='oquvchi'){ showStuDetailFull(userId); return; }
+  document.getElementById('tchDetailContent').innerHTML=`
+    <div class="profile-card">
+      <div class="profile-avatar">${initials(u.name)}</div>
+      <div class="profile-info">
+        <div class="profile-name">${u.name}${u.is_frozen?' <span class="badge b-red">🔒</span>':''}</div>
+        <div class="profile-meta">${ROLE_LABELS[u.role]||u.role} • ${u.login}</div>
+      </div>
+    </div>
+    <div style="display:grid;gap:8px;margin-top:12px;">
+      <div class="notif" style="border-left-color:var(--c3)"><div class="notif-icon">📞</div><div class="notif-body"><div class="notif-title">Telefon</div><div class="notif-desc">${u.phone||'—'}</div></div></div>
+    </div>`;
+  document.getElementById('tchDetailActions').innerHTML=
+    `<button class="btn btn-sm btn-primary" onclick="openEditUser(${u.id})">✏️ Tahrirlash</button>
+    <button class="btn btn-sm ${u.is_frozen?'btn-unfreeze':'btn-freeze'}" onclick="toggleFreeze(${u.id},${!u.is_frozen});closeModal('tchDetailModal')">${u.is_frozen?'🔓 Ochish':'🔒 Muzlatish'}</button>
+    <button class="btn btn-sm btn-outline" onclick="closeModal('tchDetailModal')">Yopish</button>`;
+  openModal('tchDetailModal');
+}
+
+/* ─── OQUVCHI DETAIL TO'LIQ (tahrirlash + muzlatish bilan) ─── */
+async function showStuDetailFull(stuId){
+  const {data:s}=await SB.from('users').select('*').eq('id',stuId).single();
+  if(!s){toast("Topilmadi",'error');return;}
+  const tch=s.teacher_id?(await SB.from('users').select('name,subject').eq('id',s.teacher_id).single()).data:null;
+  const atts=await getAttendance(s.id);
+  const cnt=atts.filter(a=>a.came).length;
+  const pct=Math.round(cnt/Math.max(atts.length,1)*100);
+  const {data:pays}=await SB.from('payments').select('*').eq('stu_id',s.id).order('created_at',{ascending:false});
+  document.getElementById('stuDetailContent').innerHTML=`
+    <div class="profile-card" style="margin-bottom:12px;">
+      <div class="profile-avatar">${initials(s.name)}</div>
+      <div class="profile-info">
+        <div class="profile-name">${s.name}${s.is_frozen?' <span class="badge b-red">🔒</span>':''}</div>
+        <div class="profile-meta">O'quvchi • ${s.login}</div>
+      </div>
+    </div>
+    <div style="display:grid;gap:8px;">
+      <div class="notif" style="border-left-color:var(--c3)"><div class="notif-icon">📞</div><div class="notif-body"><div class="notif-title">Telefon</div><div class="notif-desc">${s.phone||'—'}</div></div></div>
+      <div class="notif" style="border-left-color:var(--gold)"><div class="notif-icon">👨‍👩‍👧</div><div class="notif-body"><div class="notif-title">Ota-ona: ${s.parent_name||'—'}</div><div class="notif-desc">${s.parent_phone||'—'}</div></div></div>
+      <div class="notif"><div class="notif-icon">📚</div><div class="notif-body"><div class="notif-title">Fanlar</div><div class="notif-desc">${s.subjects||'—'}</div></div></div>
+      <div class="notif"><div class="notif-icon">👨‍🏫</div><div class="notif-body"><div class="notif-title">O'qituvchi</div><div class="notif-desc">${tch?.name||'—'} ${tch?.subject?'('+tch.subject+')':''}</div></div></div>
+      <div class="notif"><div class="notif-icon">📅</div><div class="notif-body"><div class="notif-title">Davomat</div><div class="notif-desc">${cnt} ta dars kelgan • ${pct}%</div></div></div>
+      ${(pays||[]).length?`<div class="notif pay"><div class="notif-icon">💳</div><div class="notif-body"><div class="notif-title">So'nggi to'lov</div><div class="notif-desc">${pays[0].amount?numFmt(pays[0].amount)+' so\'m • ':''} ${pays[0].status==='paid'?"To'landi ✓":'Kutilmoqda ⚠'}</div></div></div>`:''}
+    </div>`;
+  const canEdit=(CU.role==='admin'||CU.role==='menejer');
+  const actionsEl=document.getElementById('stuDetailActions');
+  if(actionsEl && canEdit){
+    actionsEl.innerHTML=`
+      <button class="btn btn-sm btn-primary" onclick="openEditUser(${s.id})">✏️ Tahrirlash</button>
+      <button class="btn btn-sm ${s.is_frozen?'btn-unfreeze':'btn-freeze'}" onclick="toggleFreeze(${s.id},${!s.is_frozen});closeModal('stuDetailModal')">${s.is_frozen?'🔓 Ochish':'🔒 Muzlatish'}</button>
+      <button class="btn btn-sm btn-outline" onclick="closeModal('stuDetailModal')">Yopish</button>`;
+  }
+  openModal('stuDetailModal');
+}
+
+/* ─── TAHRIRLASH MODALI ─── */
+async function openEditUser(userId){
+  const {data:u}=await SB.from('users').select('*').eq('id',userId).single();
+  if(!u) return;
+  document.getElementById('edit-user-id').value=userId;
+  document.getElementById('edit-user-role').value=u.role;
+  document.getElementById('edit-name').value=u.name||'';
+  document.getElementById('edit-phone').value=u.phone||'';
+
+  const subWrap=document.getElementById('edit-subject-wrap');
+  const stuWrap=document.getElementById('edit-stu-extra');
+  const subsWrap=document.getElementById('edit-subjects-wrap');
+  const tchWrap=document.getElementById('edit-teacher-wrap');
+  [subWrap,stuWrap,subsWrap,tchWrap].forEach(el=>{if(el)el.style.display='none';});
+
+  if(u.role==='oqutuvchi'){
+    subWrap.style.display='flex';
+    document.getElementById('edit-subject').value=u.subject||'';
+  }
+  if(u.role==='oquvchi'){
+    stuWrap.style.display='grid';stuWrap.style.gridTemplateColumns='repeat(2,minmax(0,1fr))';
+    subsWrap.style.display='flex';
+    tchWrap.style.display='flex';
+    document.getElementById('edit-pname').value=u.parent_name||'';
+    document.getElementById('edit-pphone').value=u.parent_phone||'';
+    document.getElementById('edit-subjects').value=u.subjects||'';
+    const tch=await getTch();
+    document.getElementById('edit-teacher').innerHTML='<option value="">Tanlang</option>'+
+      tch.map(t=>`<option value="${t.id}"${t.id===u.teacher_id?' selected':''}>${t.name}</option>`).join('');
+  }
+  closeModal('tchDetailModal');
+  closeModal('stuDetailModal');
+  openModal('editUserModal');
+}
+
+async function saveEditUser(){
+  const userId=parseInt(document.getElementById('edit-user-id').value);
+  const role=document.getElementById('edit-user-role').value;
+  const name=document.getElementById('edit-name').value.trim();
+  const phone=document.getElementById('edit-phone').value.trim();
+  if(!name){toast('Ism kiriting','warn');return;}
+  const upd={name,phone:phone||null};
+  if(role==='oqutuvchi'){
+    upd.subject=document.getElementById('edit-subject').value.trim()||null;
+  }
+  if(role==='oquvchi'){
+    upd.parent_name=document.getElementById('edit-pname').value.trim()||null;
+    upd.parent_phone=document.getElementById('edit-pphone').value.trim()||null;
+    upd.subjects=document.getElementById('edit-subjects').value.trim()||null;
+    const tid=document.getElementById('edit-teacher').value;
+    upd.teacher_id=tid?parseInt(tid):null;
+  }
+  const {error}=await SB.from('users').update(upd).eq('id',userId);
+  if(error){toast('Xato: '+error.message,'error');return;}
+  closeModal('editUserModal');
+  addLog('Tahrirlash','User ID '+userId+' tahrirlandi','info');
+  toast('Saqlandi ✓','success');
+  if(document.getElementById('adminUserTable')) loadAdminUsers();
+  if(document.getElementById('tchTable')) loadTchTable();
+  if(document.getElementById('stuTable')) loadStuTable();
+}
+
 </script>
+
 </body>
 </html>
